@@ -6,19 +6,6 @@ import createToken from '../config/createToken.js';
 import { sendForgotPasswordEmail } from '../config/sendEmails.js';
 
 
-// create token
-// const createToken = (user) => {
-//     return jwt.sign(
-//         {
-//             id: user._id,
-//             name: user.name,
-//             email: user.email,
-//             role: user.role,
-//         },
-//         process.env.JWT_SECRET,
-//     );
-// };
-
 //login user
 const loginUser = async (req,res) => {
     const {email,password} = req.body;
@@ -39,7 +26,6 @@ const loginUser = async (req,res) => {
             role: userData.role,
             _id: userData._id,
           });
-        console.log(userData);
         
         res.json({success:true,token,userData})
     } catch (error) {
@@ -49,14 +35,9 @@ const loginUser = async (req,res) => {
     }
 }
 
-// const createToken = (id) =>  {
-//     return jwt.sign({id},process.env.JWT_SECRET);
-// }
-
-
 //register user
 const registerUser = async (req,res) => {
-    const {name,password,role,email} = req.body;
+    const {name,password,role,email,veryfied} = req.body;
     try {
         //checking is user already exists
         const exists =  await userModel.findOne({email});
