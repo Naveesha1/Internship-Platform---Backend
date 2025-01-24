@@ -12,13 +12,20 @@ const profileSchema = new mongoose.Schema(
         idFrontImageUrl: { type: String, required:true },
         idBackImageUrl: { type: String, required:true },
         skills: [{ type: String }],
-        position: [{ type:String, required:true }],
+        // position: [{ type:String, required:true }],
         qualification: [{ type:String }],
-        cvUrl: { type:String },
+        // cvUrl: { type:String },
         verify: { type: Boolean, default:false },
         registeredEmail:{ type:String, required:true},
         date: { type: String, default: () => new Date().toISOString().split('T')[0] },
-        certifications:[{ type:String, required:true}]
+        certifications:[{ type:String, required:true}],
+        cvData:[
+            {
+                title:{ type:String },
+                cvUrl:{ type:String },
+                fileName:{ type:String },
+            }
+        ],
     },
     {
         minimize:false
