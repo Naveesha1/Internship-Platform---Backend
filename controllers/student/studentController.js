@@ -2,9 +2,12 @@ import studentProfileModel from "../../models/student/studentProfileModel.js";
 
 const studentProfileController = async (req,res) => {
         const { fullName,registrationNumber,degree,universityMail,contactNumber,gpa,
-            profileImage,idFrontImage,idBackImage, skills,position,qualification,cv,verify,userEmail,certifications
+            profileImage,idFrontImage,idBackImage, skills,position,qualification,cv,verify,userEmail,certifications,cvName
          } = req.body;
 
+         console.log(cv);
+         console.log(cvName);
+         
          try{
             const student = await studentProfileModel.findOne({universityMail});
             if(student){
@@ -14,8 +17,13 @@ const studentProfileController = async (req,res) => {
                 // Split the skills string into an array
                 const skillsArray = skills ? skills.split(",").map(skill => skill.trim()) : [];
                 const qualificationArray = qualification ? qualification.split(",").map(qualifi => qualifi.trim()) : [];
-                const positionArray = position ? position.split(",").map(onePosition => onePosition.trim()) : [];
-                const certificationArray = certifications ? certifications.split(",").map(certification => certification.trim()) : [];                
+                // const positionArray = position ? position.split(",").map(onePosition => onePosition.trim()) : [];
+                const certificationArray = certifications ? certifications.split(",").map(certification => certification.trim()) : []; 
+                const validCvDetails = [{
+                            title: position,
+                            cvUrl: cv,
+                            fileName: cvName,
+                      }]               
                 
                 const newStudent = new studentProfileModel(
                     {
@@ -29,12 +37,13 @@ const studentProfileController = async (req,res) => {
                         idFrontImageUrl:idFrontImage,
                         idBackImageUrl:idBackImage,
                         skills:skillsArray,
-                        position:positionArray,
+                        // position:positionArray,
                         qualification:qualificationArray,
-                        cvUrl:cv,
+                        // cvUrl:cv,
                         verify:verify,
                         registeredEmail:userEmail,
                         certifications:certificationArray,
+                        cvData:validCvDetails,
                     }
                 );
                 await newStudent.save();
@@ -77,4 +86,26 @@ const getCVController = async(req,res) => {
     }
 }
 
-export { studentProfileController,getProfileController,getCVController };
+const updateCvDetailsController = async(req,res) => {
+    const { title, cvUrl, fileName, registeredEmail } = req.body;
+    try {
+        const profile = await studentProfileModel.findOne({registeredEmail});
+        if(profile) {
+            const newCvData = { 
+                title:title,
+                cvUrl:cvUrl,
+                fileName:fileName
+             }
+             profile.cvData.push(newCvData);
+             await profile.save();
+             return res.json({ success: true, message: "CV details updated successfully!" });
+
+         } else {
+             return res.json({ success: false, message: "Profile not found." });
+         }
+    } catch (error) {
+        return res.json({success:false, message: "An error occured"});
+    }
+}
+
+export { studentProfileController,getProfileController,getCVController,updateCvDetailsController };
