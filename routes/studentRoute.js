@@ -1,5 +1,11 @@
 import express from 'express';
-import { studentProfileController,getProfileController,getCVController,updateCvDetailsController } from '../controllers/student/studentController.js';
+import { 
+    studentProfileController,
+    getProfileController,
+    getCvDetailsController,
+    addNewCvDetailsController,
+    updateExistingCvDetails,
+    deleteExistingCvDetails } from '../controllers/student/studentController.js';
 import { getAllInternshipController } from '../controllers/internshipController.js';
 
 const studentRouter = express.Router();
@@ -7,8 +13,10 @@ const studentRouter = express.Router();
 studentRouter.post("/profile",studentProfileController);
 studentRouter.post("/getprofile",getProfileController);
 studentRouter.get("/allInternships",getAllInternshipController);
-studentRouter.post("/getcv",getCVController);
-studentRouter.put("/updateCvDetails",updateCvDetailsController)
+studentRouter.post("/getCvDetails",getCvDetailsController);
+studentRouter.put("/addNewCvDetails",addNewCvDetailsController);
+studentRouter.put("/updateNewCv",updateExistingCvDetails);
+studentRouter.put("/deleteCv",deleteExistingCvDetails)
 
 
 export default studentRouter; 
