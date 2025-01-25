@@ -1,12 +1,10 @@
 import studentProfileModel from "../../models/student/studentProfileModel.js";
+import mongoose from "mongoose";
 
 const studentProfileController = async (req,res) => {
         const { fullName,registrationNumber,degree,universityMail,contactNumber,gpa,
-            profileImage,idFrontImage,idBackImage, skills,position,qualification,cv,verify,userEmail,certifications,cvName
+            profileImage,idFrontImage,idBackImage, skills,position,qualification,cv,verify,userEmail,certifications,cvName,cvPosition
          } = req.body;
-
-         console.log(cv);
-         console.log(cvName);
          
          try{
             const student = await studentProfileModel.findOne({universityMail});
@@ -17,10 +15,10 @@ const studentProfileController = async (req,res) => {
                 // Split the skills string into an array
                 const skillsArray = skills ? skills.split(",").map(skill => skill.trim()) : [];
                 const qualificationArray = qualification ? qualification.split(",").map(qualifi => qualifi.trim()) : [];
-                // const positionArray = position ? position.split(",").map(onePosition => onePosition.trim()) : [];
+                const positionArray = position ? position.split(",").map(onePosition => onePosition.trim()) : [];
                 const certificationArray = certifications ? certifications.split(",").map(certification => certification.trim()) : []; 
                 const validCvDetails = [{
-                            title: position,
+                            title: cvPosition,
                             cvUrl: cv,
                             fileName: cvName,
                       }]               
@@ -37,9 +35,8 @@ const studentProfileController = async (req,res) => {
                         idFrontImageUrl:idFrontImage,
                         idBackImageUrl:idBackImage,
                         skills:skillsArray,
-                        // position:positionArray,
+                        position:positionArray,
                         qualification:qualificationArray,
-                        // cvUrl:cv,
                         verify:verify,
                         registeredEmail:userEmail,
                         certifications:certificationArray,
@@ -70,23 +67,23 @@ const getProfileController = async(req,res) => {
     }
 }
 
-const getCVController = async(req,res) => {
+const getCvDetailsController = async(req,res) => {
     const { registeredEmail } = req.body;
 
     try {
         const profile = await studentProfileModel.findOne({registeredEmail});
         if(profile){
-            return res.json({ success:true, data:profile.cvUrl })
+            return res.json({ success:true, data:profile.cvData })
         }
         else {
             return res.json({ success:false, message:"User not found" });
         }
     } catch (error) {
-        return res.json({success:false, message:"An error occured"});
+        return res.json({success:false, message:"An error occured during"});
     }
 }
 
-const updateCvDetailsController = async(req,res) => {
+const addNewCvDetailsController = async(req,res) => {
     const { title, cvUrl, fileName, registeredEmail } = req.body;
     try {
         const profile = await studentProfileModel.findOne({registeredEmail});
@@ -98,7 +95,7 @@ const updateCvDetailsController = async(req,res) => {
              }
              profile.cvData.push(newCvData);
              await profile.save();
-             return res.json({ success: true, message: "CV details updated successfully!" });
+             return res.json({ success: true, message: "CV details updated successfully!", data:profile.cvData });
 
          } else {
              return res.json({ success: false, message: "Profile not found." });
@@ -108,4 +105,48 @@ const updateCvDetailsController = async(req,res) => {
     }
 }
 
-export { studentProfileController,getProfileController,getCVController,updateCvDetailsController };
+const updateExistingCvDetails = async(req,res) => {
+    const { title, fileName, cvUrl, registeredEmail, id } = req.body; 
+    try {
+        const updatedProfile = await studentProfileModel.findOneAndUpdate(
+            { registeredEmail, "cvData._id": id }, // Match the profile and specific CV by _id
+            {
+              $set: {
+                "cvData.$.title": title,
+                "cvData.$.cvUrl": cvUrl,
+                "cvData.$.fileName": fileName,
+              },
+            },
+            { new: true } // Return the updated document
+          );
+          return res.json({success:true, message:"CV updated successfully", data:updatedProfile});
+    } catch (error) {
+        return res.json({success:false, message:"An error occured"});
+    }
+}
+
+const deleteExistingCvDetails = async(req,res) => {
+    const { registeredEmail,id } = req.body;
+
+    try {
+        const cvDeletedProfile = await studentProfileModel.findOneAndUpdate(
+            {registeredEmail},
+            { $pull: { cvData: { _id:id } } },
+            { new:true }
+        );
+        if(!cvDeletedProfile){
+            return res.json({success:false, message:"Profile not found"});
+        }
+        return res.json({success:true, message:"Successfully deleted", data:cvDeletedProfile});
+    } catch (error) {
+        return res.json({success:false, message:"An error occured"});
+    }
+}
+    
+
+export { studentProfileController,
+         getProfileController,
+         getCvDetailsController,
+         addNewCvDetailsController,
+         updateExistingCvDetails,
+         deleteExistingCvDetails };
