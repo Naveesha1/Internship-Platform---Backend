@@ -1,5 +1,6 @@
 import studentProfileModel from "../../models/student/studentProfileModel.js";
 import mongoose from "mongoose";
+import internshipModel from "../../models/company/internshipModel.js";
 
 const studentProfileController = async (req,res) => {
         const { fullName,registrationNumber,degree,universityMail,contactNumber,gpa,
@@ -142,11 +143,32 @@ const deleteExistingCvDetails = async(req,res) => {
         return res.json({success:false, message:"An error occured"});
     }
 }
-    
+   
+const getSuggestInternships = async(req,res) => {
+    const { registeredEmail } = req.body;    
+    try {
+        const getProfile = await studentProfileModel.findOne({registeredEmail});        
+        const positions = getProfile.position;
+        const suggestInternships = await internshipModel.find({
+            position: {
+                $in: positions
+            }
+        });
+        
+        return res.json({ success:true, data:suggestInternships });
+
+    } catch (error) {
+        console.log(error);
+        
+        return ({ success:false, message:"Error occured" });
+    }
+}
+
 
 export { studentProfileController,
          getProfileController,
          getCvDetailsController,
          addNewCvDetailsController,
          updateExistingCvDetails,
-         deleteExistingCvDetails };
+         deleteExistingCvDetails,
+         getSuggestInternships };

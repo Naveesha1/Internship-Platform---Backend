@@ -5,7 +5,8 @@ import {
     getCvDetailsController,
     addNewCvDetailsController,
     updateExistingCvDetails,
-    deleteExistingCvDetails } from '../controllers/student/studentController.js';
+    deleteExistingCvDetails,
+    getSuggestInternships } from '../controllers/student/studentController.js';
 import { getAllInternshipController } from '../controllers/internshipController.js';
 
 const studentRouter = express.Router();
@@ -17,6 +18,7 @@ studentRouter.post("/getCvDetails",getCvDetailsController);
 studentRouter.put("/addNewCvDetails",addNewCvDetailsController);
 studentRouter.put("/updateNewCv",updateExistingCvDetails);
 studentRouter.put("/deleteCv",deleteExistingCvDetails)
+studentRouter.post("/getSuggestions",getSuggestInternships);
 
 
 export default studentRouter; 
