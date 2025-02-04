@@ -20,6 +20,6 @@ const internshipSchema = new mongoose.Schema({
     verify: { type: Boolean, default: false },
 });
 
-const createInternshipModel =
+const internshipModel =
     mongoose.models.internships || mongoose.model("internships", internshipSchema);
-export default createInternshipModel;
+export default internshipModel;

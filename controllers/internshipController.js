@@ -1,5 +1,5 @@
 import companyProfileModel from '../models/company/companyProfileModel.js';
-import createInternshipModel from '../models/company/createInternshipModel.js';
+import internshipModel from '../models/company/internshipModel.js';
 
 
 // Internship creating controller
@@ -30,7 +30,7 @@ const createInternshipController = async (req,res) => {
         const keysToRemove = ["_id", "__v", "about","positions","vision","mission","industry","companyDocument"];
         keysToRemove.forEach((key) => delete mergedIntern[key]);
         
-        const updatedInternship = new createInternshipModel(mergedIntern);
+        const updatedInternship = new internshipModel(mergedIntern);
         await updatedInternship.save();
         return res.json({success:true, message:"Successfully created"});
     }
@@ -45,7 +45,7 @@ const createInternshipController = async (req,res) => {
 
 const getAllInternshipController = async(req,res) => {
     try {
-        const internships = await createInternshipModel.find();
+        const internships = await internshipModel.find();
         return res.json({ success:true, data:internships });
     } catch (error) {
         return res.json({ success:false, message:"error fetching data" });
