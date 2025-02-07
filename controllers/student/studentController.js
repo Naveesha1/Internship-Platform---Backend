@@ -55,9 +55,10 @@ const studentProfileController = async (req,res) => {
 
 const getProfileController = async(req,res) => {
     const { registeredEmail } = req.body;
+    console.log(registeredEmail);
     
     try {
-        const studentProfile = await studentProfileModel.findOne(registeredEmail);
+        const studentProfile = await studentProfileModel.findOne({registeredEmail:registeredEmail});        
         if(!studentProfile){
             return res.json({ success:false, message:"User not found" })
         } else {
@@ -147,7 +148,8 @@ const deleteExistingCvDetails = async(req,res) => {
 const getSuggestInternships = async(req,res) => {
     const { registeredEmail } = req.body;    
     try {
-        const getProfile = await studentProfileModel.findOne({registeredEmail});        
+        const getProfile = await studentProfileModel.findOne({registeredEmail});
+        if(getProfile){       
         const positions = getProfile.position;
         const suggestInternships = await internshipModel.find({
             position: {
@@ -156,6 +158,7 @@ const getSuggestInternships = async(req,res) => {
         });
         
         return res.json({ success:true, data:suggestInternships });
+    }
 
     } catch (error) {
         console.log(error);
