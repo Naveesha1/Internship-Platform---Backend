@@ -58,6 +58,7 @@ const getProfileController = async(req,res) => {
     console.log(registeredEmail);
     
     try {
+
         const studentProfile = await studentProfileModel.findOne({registeredEmail:registeredEmail});        
         if(!studentProfile){
             return res.json({ success:false, message:"User not found" })
