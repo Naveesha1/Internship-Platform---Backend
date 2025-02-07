@@ -11,6 +11,7 @@ const createInternshipController = async (req,res) => {
 
     try {
 
+        const currentDate = new Date().toISOString().split('T')[0];
         const companyProfile = await companyProfileModel.findOne({registeredEmail});
         const responsibilitiesArray = responsibilities ? responsibilities.split(",").map(responsibility => responsibility.trim()) : [];
         const requirementsArray = requirements ? requirements.split(",").map(requirement => requirement.trim()): [];
@@ -25,6 +26,7 @@ const createInternshipController = async (req,res) => {
             keywords:keywordsArray,
             workMode:workMode,
             aboutIntern:aboutIntern,
+            date:currentDate,
         };
 
         const mergedIntern = { ...companyProfile.toObject() ,...newInternship };
@@ -100,12 +102,10 @@ const remainInternshipController = async(req,res) => {
         );
 
         const remainInternshipCount = remainInternships.length;
-        console.log(remainInternshipCount);
         return res.json({success:true, data:remainInternshipCount});
-        
 
     } catch (error) {
-        
+        return res.json({success:fasle});
     }
 }
 

@@ -1,5 +1,6 @@
 import express from 'express';
 import companyProfileModel from '../../models/company/companyProfileModel.js';
+import internshipModel from '../../models/company/internshipModel.js';
 
 // Profile setting up controller
 const companyProfileController = async(req,res) => {
@@ -56,8 +57,20 @@ const getCompanyController = async(req,res) => {
     }
 } 
 
+const getCompanySpecificInternshipController = async(req,res) => {
+    const { registeredEmail } = req.body;
+    try {
+        const internships = await internshipModel.find({registeredEmail:registeredEmail});
+        const reversedInternships = internships.reverse();        
+        if(internships){
+            return res.json({ success:true, data:reversedInternships });
+        }
+    } catch (error) {
+        return res.json({ success:false, message:"error fetching data" });
+    }
+}
 
-export { companyProfileController,getCompanyController };
+export { companyProfileController,getCompanyController, getCompanySpecificInternshipController };
 
 
 

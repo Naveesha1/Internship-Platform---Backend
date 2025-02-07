@@ -8,7 +8,7 @@ const internshipSchema = new mongoose.Schema({
     requirements: [{ type: String, required: true }],
     keywords: [{ type: String, required: true }],
     registeredEmail: { type: String, required: true },
-    date: { type: String, default: () => new Date().toISOString().split('T')[0] },
+    date: { type: String, required:true},    
     companyName: { type: String },
     companyLogo: { type: String },
     companyEmail: { type: String },
