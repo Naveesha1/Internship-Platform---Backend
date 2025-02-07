@@ -1,5 +1,6 @@
 import companyProfileModel from '../models/company/companyProfileModel.js';
 import internshipModel from '../models/company/internshipModel.js';
+import applyInternshipModel from '../models/student/applyInternshipModel.js';
 
 
 // Internship creating controller
@@ -52,4 +53,64 @@ const getAllInternshipController = async(req,res) => {
     }
 }
 
-export { createInternshipController,getAllInternshipController };
+const applyInternshipController = async(req,res) => {
+    const { userEmail, userName, userCv, position, companyName, companyEmail, internshipId } = req.body;
+    try {
+        const newApplication = new applyInternshipModel (
+            {
+            userEmail:userEmail,
+            userName:userName,
+            userCv:userCv,
+            position:position,
+            companyName:companyName,
+            companyEmail:companyEmail,
+            internshipId:internshipId,
+        }
+    );    
+        await newApplication.save();
+        return res.json({ success:true, message:"Success" });
+        
+    } catch (error) {
+        return res.json({success:false, message:"error occured"});
+    }
+}
+
+const getSubmittedApplicationsController = async(req,res) => {
+    const { registeredEmail } = req.body;
+    try {
+        const count = await applyInternshipModel.countDocuments({userEmail:registeredEmail});
+        if(count){            
+            return res.json({success:true, data:count});
+        }
+    } catch (error) {
+        return res.json({success:false });
+    }
+}
+
+const remainInternshipController = async(req,res) => {
+    const { registeredEmail } = req.body;
+    try {
+        const appliedInternships = await applyInternshipModel.find({userEmail:registeredEmail});
+        const appliedInternshipIds = appliedInternships.map(internship => internship.internshipId);
+
+        const allInternships = await internshipModel.find();
+
+        const remainInternships = allInternships.filter(internship => 
+            !appliedInternshipIds.includes(internship._id.toString()) // Convert ObjectId to string
+        );
+
+        const remainInternshipCount = remainInternships.length;
+        console.log(remainInternshipCount);
+        return res.json({success:true, data:remainInternshipCount});
+        
+
+    } catch (error) {
+        
+    }
+}
+
+export { createInternshipController,
+    getAllInternshipController,
+    applyInternshipController,
+    getSubmittedApplicationsController,
+    remainInternshipController };
