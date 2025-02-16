@@ -164,7 +164,7 @@ const deleteExistingCvDetails = async (req, res) => {
 
   try {
     const cvDeletedProfile = await studentProfileModel.findOneAndUpdate(
-      { registeredEmail },
+      { registeredEmail: registeredEmail },
       { $pull: { cvData: { _id: id } } },
       { new: true }
     );
