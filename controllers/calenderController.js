@@ -15,7 +15,7 @@ const addEventController = async (req, res) => {
       await eventProfile.save();
       return res.json({
         success: true,
-        message: "Event profile created and saved",
+        message: "Event saved",
       });
     } else {
       // Push new event into the existing events array
