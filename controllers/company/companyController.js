@@ -27,7 +27,7 @@ const companyProfileController = async (req, res) => {
     if (company) {
       return res.json({
         success: false,
-        message: "Details under your mail is exsist",
+        message: "Details under your email is exsist",
       });
     } else {
       //split the positions into an array
@@ -63,7 +63,9 @@ const companyProfileController = async (req, res) => {
 const getCompanyController = async (req, res) => {
   const { registeredEmail } = req.body;
   try {
-    const companyProfile = await companyProfileModel.findOne(registeredEmail);
+    const companyProfile = await companyProfileModel.findOne({
+      registeredEmail: registeredEmail,
+    });
     if (!companyProfile) {
       return res.json({ success: false, message: "Company not found" });
     } else {
