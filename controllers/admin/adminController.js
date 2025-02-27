@@ -2,6 +2,7 @@ import internshipModel from "../../models/company/internshipModel.js";
 import UserModel from "../../models/userModel.js";
 import StudentProfileModel from "../../models/student/studentProfileModel.js";
 import bcrypt from "bcrypt";
+import companyProfileModel from "../../models/company/companyProfileModel.js";
 
 const getAdminProfileController = async (req, res) => {
   const { registeredEmail } = req.body;
@@ -95,6 +96,19 @@ const getAllStudentsController = async (req, res) => {
   }
 };
 
+const getAllCompaniesController = async (req, res) => {
+  try {
+    const companies = await companyProfileModel.find();
+    if (companies) {
+      return res.json({ success: true, data: companies });
+    } else {
+      return res.json({ success: false, message: "Error getting companies!" });
+    }
+  } catch (error) {
+    return res.json({ success: false, message: "Server error" });
+  }
+};
+
 const updateIdStatusController = async (req, res) => {
   const { id, status } = req.body;
 
@@ -114,6 +128,24 @@ const updateIdStatusController = async (req, res) => {
   }
 };
 
+const updateVerificationStatusController = async (req, res) => {
+  const { id, status } = req.body;
+
+  try {
+    const company = await companyProfileModel.findById(id);
+
+    if (!company) {
+      return res.json({ success: false, message: "Application not found" });
+    }
+    company.verify = status;
+    await company.save();
+
+    return res.json({ success: true, message: "Status updated successfully" });
+  } catch (error) {
+    return res.json({ success: false, message: "Failed to update status" });
+  }
+};
+
 export {
   getAdminProfileController,
   getAllAdminProfilesController,
@@ -122,4 +154,6 @@ export {
   getAllInternshipsController,
   getAllStudentsController,
   updateIdStatusController,
+  getAllCompaniesController,
+  updateVerificationStatusController,
 };
