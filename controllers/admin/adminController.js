@@ -146,6 +146,66 @@ const updateVerificationStatusController = async (req, res) => {
   }
 };
 
+const getVerifiedCompaniesCountController = async (req, res) => {
+  try {
+    const count = await companyProfileModel.countDocuments({
+      verify: true,
+    });
+    if (count) {
+      return res.json({ success: true, count: count });
+    } else {
+      returnres.json({ success: false });
+    }
+  } catch (error) {
+    return res.json({ success: false });
+  }
+};
+
+const getPendingCompaniesCountController = async (req, res) => {
+  try {
+    const count = await companyProfileModel.countDocuments({
+      verify: null,
+    });
+    if (count) {
+      return res.json({ success: true, count: count });
+    } else {
+      returnres.json({ success: false });
+    }
+  } catch (error) {
+    return res.json({ success: false });
+  }
+};
+
+const getVerifiedStudentsCountController = async (req, res) => {
+  try {
+    const count = await StudentProfileModel.countDocuments({
+      verify: true,
+    });
+    if (count) {
+      return res.json({ success: true, count: count });
+    } else {
+      returnres.json({ success: false });
+    }
+  } catch (error) {
+    return res.json({ success: false });
+  }
+};
+
+const getPendingStudentsCountController = async (req, res) => {
+  try {
+    const count = await StudentProfileModel.countDocuments({
+      verify: null,
+    });
+    if (count) {
+      return res.json({ success: true, count: count });
+    } else {
+      returnres.json({ success: false });
+    }
+  } catch (error) {
+    return res.json({ success: false });
+  }
+};
+
 export {
   getAdminProfileController,
   getAllAdminProfilesController,
@@ -156,4 +216,8 @@ export {
   updateIdStatusController,
   getAllCompaniesController,
   updateVerificationStatusController,
+  getVerifiedCompaniesCountController,
+  getVerifiedStudentsCountController,
+  getPendingStudentsCountController,
+  getPendingCompaniesCountController,
 };

@@ -9,6 +9,10 @@ import {
   updateIdStatusController,
   getAllCompaniesController,
   updateVerificationStatusController,
+  getVerifiedCompaniesCountController,
+  getVerifiedStudentsCountController,
+  getPendingStudentsCountController,
+  getPendingCompaniesCountController,
 } from "../controllers/admin/adminController.js";
 
 const adminRouter = express.Router();
@@ -22,5 +26,10 @@ adminRouter.get("/getAllStudents", getAllStudentsController);
 adminRouter.put("/updateStudentStatus", updateIdStatusController);
 adminRouter.get("/getAllCompanies", getAllCompaniesController);
 adminRouter.put("/updateCompanyStatus", updateVerificationStatusController);
+
+adminRouter.get("/getVerifiedCompanies", getVerifiedCompaniesCountController);
+adminRouter.get("/getPendingCompanies", getPendingCompaniesCountController);
+adminRouter.get("/getVerifiedStudents", getVerifiedStudentsCountController);
+adminRouter.get("/getPendingStudents", getPendingStudentsCountController);
 
 export default adminRouter;
