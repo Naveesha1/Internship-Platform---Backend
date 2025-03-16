@@ -202,6 +202,20 @@ const getSuggestInternships = async (req, res) => {
   }
 };
 
+const getStudentRegisteredId = async (req, res) => {
+  try {
+    const studentIds = await studentProfileModel.find(
+      {},
+      { registrationNumber: 1, _id: 0 }
+    );
+    const registeredIds = studentIds.map((id) => id.registrationNumber);
+    return res.json({ success: true, data: registeredIds });
+    console.log(registeredIds);
+  } catch (error) {
+    return res.json({ success: false, message: "An error occured" });
+  }
+};
+
 export {
   studentProfileController,
   getProfileController,
@@ -210,4 +224,5 @@ export {
   updateExistingCvDetails,
   deleteExistingCvDetails,
   getSuggestInternships,
+  getStudentRegisteredId,
 };
