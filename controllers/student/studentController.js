@@ -216,6 +216,26 @@ const getStudentRegisteredId = async (req, res) => {
   }
 };
 
+const getStudentData = async (req, res) => {
+  const { studentId } = req.body;
+  try {
+    const studentData = await studentProfileModel.findOne({
+      registrationNumber: studentId,
+    });
+    if (studentData) {
+      return res.json({ success: true, data: studentData.fullName });
+    } else {
+      return res.json({ success: false, message: "No user found" });
+    }
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: "Internel server error",
+      error: error,
+    });
+  }
+};
+
 export {
   studentProfileController,
   getProfileController,
@@ -225,4 +245,5 @@ export {
   deleteExistingCvDetails,
   getSuggestInternships,
   getStudentRegisteredId,
+  getStudentData,
 };

@@ -8,6 +8,7 @@ import {
   deleteExistingCvDetails,
   getSuggestInternships,
   getStudentRegisteredId,
+  getStudentData,
 } from "../controllers/student/studentController.js";
 import {
   applyInternshipController,
@@ -31,5 +32,6 @@ studentRouter.post("/getSubmitted", getSubmittedApplicationsController);
 studentRouter.post("/newChances", remainInternshipController);
 
 studentRouter.get("/getStudentRegisteredId", getStudentRegisteredId);
+studentRouter.post("/getStudentName", getStudentData);
 
 export default studentRouter;
