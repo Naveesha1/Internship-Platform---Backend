@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import internshipModel from "../../models/company/internshipModel.js";
 
 const studentProfileController = async (req, res) => {
+  console.log("Request Body:", req.body);
   const {
     fullName,
     registrationNumber,
@@ -202,6 +203,57 @@ const getSuggestInternships = async (req, res) => {
   }
 };
 
+const getStudentRegisteredId = async (req, res) => {
+  try {
+    const studentIds = await studentProfileModel.find(
+      {},
+      { registrationNumber: 1, _id: 0 }
+    );
+    const registeredIds = studentIds.map((id) => id.registrationNumber);
+    return res.json({ success: true, data: registeredIds });
+    console.log(registeredIds);
+  } catch (error) {
+    return res.json({ success: false, message: "An error occured" });
+  }
+};
+
+const getGpaDistribution = async (req, res) => {
+  try {
+    // Get all student profiles
+    const students = await studentProfileModel.find({}, 'gpa');
+    
+    // Initialize counters for each GPA range
+    const gpaDistribution = [
+      { range: '0.0-1.0', count: 0, color: '#FF8042' },
+      { range: '1.0-2.0', count: 0, color: '#FFBB28' },
+      { range: '2.0-3.0', count: 0, color: '#00C49F' },
+      { range: '3.0-4.0', count: 0, color: '#0088FE' }
+    ];
+    
+    // Count students in each GPA range
+    students.forEach(student => {
+      const gpa = student.gpa;
+      
+      if (gpa !== undefined && gpa !== null) {
+        if (gpa >= 0 && gpa < 1) {
+          gpaDistribution[0].count++;
+        } else if (gpa >= 1 && gpa < 2) {
+          gpaDistribution[1].count++;
+        } else if (gpa >= 2 && gpa < 3) {
+          gpaDistribution[2].count++;
+        } else if (gpa >= 3 && gpa <= 4) {
+          gpaDistribution[3].count++;
+        }
+      }
+    });
+    
+    res.json({ success: true, data: gpaDistribution });
+  } catch (error) {
+    console.error("Error fetching GPA distribution:", error);
+    res.status(500).json({ success: false, message: "Error fetching GPA distribution data" });
+  }
+};
+
 export {
   studentProfileController,
   getProfileController,
@@ -210,4 +262,6 @@ export {
   updateExistingCvDetails,
   deleteExistingCvDetails,
   getSuggestInternships,
+  getStudentRegisteredId,
+  getGpaDistribution,
 };
