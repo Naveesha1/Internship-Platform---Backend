@@ -206,6 +206,68 @@ const getPendingStudentsCountController = async (req, res) => {
   }
 };
 
+const getMonthlyRegistrationStatsController = async (req, res) => {
+  try {
+    const today = new Date();
+    const fourMonthsAgo = new Date();
+    fourMonthsAgo.setMonth(today.getMonth() - 3); // Go back 3 months to cover the last 4 months including the current month
+
+    // Aggregation to get student registration counts
+    const studentData = await StudentProfileModel.aggregate([
+      {
+        $match: {
+          date: { $gte: fourMonthsAgo.toISOString().split("T")[0] },
+        },
+      },
+      {
+        $group: {
+          _id: { $substr: ["$date", 0, 7] }, // Extract YYYY-MM from date
+          studentCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 }, // Sort by month
+      },
+    ]);
+
+    // Aggregation to get company registration counts
+    const companyData = await companyProfileModel.aggregate([
+      {
+        $match: {
+          date: { $gte: fourMonthsAgo.toISOString().split("T")[0] },
+        },
+      },
+      {
+        $group: {
+          _id: { $substr: ["$date", 0, 7] }, // Extract YYYY-MM from date
+          companyCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 }, // Sort by month
+      },
+    ]);
+
+    // Merge student and company data
+    const response = {};
+    studentData.forEach((entry) => {
+      response[entry._id] = { studentCount: entry.studentCount, companyCount: 0 };
+    });
+    companyData.forEach((entry) => {
+      if (response[entry._id]) {
+        response[entry._id].companyCount = entry.companyCount;
+      } else {
+        response[entry._id] = { studentCount: 0, companyCount: entry.companyCount };
+      }
+    });
+
+    return res.json({ success: true, data: response });
+  } catch (error) {
+    console.log(error);
+    return res.json({ success: false, message: "Error fetching monthly stats" });
+  }
+};
+
 export {
   getAdminProfileController,
   getAllAdminProfilesController,
@@ -220,4 +282,5 @@ export {
   getVerifiedStudentsCountController,
   getPendingStudentsCountController,
   getPendingCompaniesCountController,
+  getMonthlyRegistrationStatsController,
 };

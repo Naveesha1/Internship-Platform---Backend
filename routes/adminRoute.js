@@ -13,6 +13,7 @@ import {
   getVerifiedStudentsCountController,
   getPendingStudentsCountController,
   getPendingCompaniesCountController,
+  getMonthlyRegistrationStatsController,
 } from "../controllers/admin/adminController.js";
 
 const adminRouter = express.Router();
@@ -31,5 +32,6 @@ adminRouter.get("/getVerifiedCompanies", getVerifiedCompaniesCountController);
 adminRouter.get("/getPendingCompanies", getPendingCompaniesCountController);
 adminRouter.get("/getVerifiedStudents", getVerifiedStudentsCountController);
 adminRouter.get("/getPendingStudents", getPendingStudentsCountController);
+adminRouter.get("/monthlyRegistrationStatus", getMonthlyRegistrationStatsController);
 
 export default adminRouter;
