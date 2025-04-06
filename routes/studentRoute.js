@@ -9,6 +9,7 @@ import {
   getSuggestInternships,
   getStudentRegisteredId,
   getStudentData,
+  getGpaDistribution,
 } from "../controllers/student/studentController.js";
 import {
   applyInternshipController,
@@ -33,5 +34,6 @@ studentRouter.post("/newChances", remainInternshipController);
 
 studentRouter.get("/getStudentRegisteredId", getStudentRegisteredId);
 studentRouter.post("/getStudentName", getStudentData);
+studentRouter.get("/gpa-distribution",getGpaDistribution);
 
 export default studentRouter;
