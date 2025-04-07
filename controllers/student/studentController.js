@@ -269,14 +269,88 @@ const getGpaDistribution = async (req, res) => {
     res.json({ success: true, data: gpaDistribution });
   } catch (error) {
     console.error("Error fetching GPA distribution:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error fetching GPA distribution data",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching GPA distribution data",
+    });
   }
 };
+
+const getRegistrationId = async (req, res) => {
+  const { userEmail } = req.body;
+  try {
+    const studentProfile = await studentProfileModel.findOne({
+      registeredEmail: userEmail,
+    });
+    if (!studentProfile) {
+      return res.json({ success: false, message: "User not found" });
+    } else {
+      return res.json({
+        success: true,
+        data: studentProfile.registrationNumber,
+      });
+    }
+  } catch (error) {
+    return res.json({ success: false, message: error });
+  }
+};
+
+const saveWeeklyReportData = async (req, res) => {
+  const { registeredEmail, weekNo, reportUrl, month } = req.body;
+  try {
+    const profile = await studentProfileModel.findOne({ registeredEmail });
+    console.log(profile);
+    if (profile) {
+      const newWeeklyData = {
+        month: month,
+        weekNo: weekNo,
+        reportUrl: reportUrl,
+      };
+      profile.weekly.push(newWeeklyData);
+      await profile.save();
+      return res.json({
+        success: true,
+        message: "Data saved",
+
+      });
+    }
+  } catch (error) {
+    return res.json({ success: false, message: error });
+  }
+};
+
+const getWeeklyReports = async(req,res) => {
+  const { userEmail } = req.body;
+  try {
+    const profile = await studentProfileModel.findOne({ registeredEmail: userEmail });
+    if(profile) {
+      return res.json({success:true, data:profile.weekly});
+    }
+  } catch (error) {
+    return res.json({success:false, message:error});
+  }
+}
+
+const deleteWeeklyReport = async(req,res) => {
+  const { userEmail,id } = req.body;
+  try {
+    const Profile = await studentProfileModel.findOneAndUpdate(
+      { registeredEmail: userEmail },
+      { $pull: { weekly: { _id: id } } },
+      { new: true }
+    ); 
+    if (!Profile) {
+      return res.json({ success: false, message: "Profile not found" });
+    }
+    return res.json({
+      success: true,
+      message: "Successfully deleted",
+      data: Profile.weekly,
+    });
+  } catch (error) {
+    return res.json({success:false, message:"An unexpected error occured!"})
+  }
+}
 
 export {
   studentProfileController,
@@ -289,4 +363,8 @@ export {
   getStudentRegisteredId,
   getStudentData,
   getGpaDistribution,
+  getRegistrationId,
+  saveWeeklyReportData,
+  getWeeklyReports,
+  deleteWeeklyReport,
 };
