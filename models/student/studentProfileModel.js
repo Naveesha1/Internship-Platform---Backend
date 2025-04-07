@@ -28,6 +28,13 @@ const profileSchema = new mongoose.Schema(
         fileName: { type: String },
       },
     ],
+    weekly: [
+      {
+        month: { type: String },
+        weekNo: { type: Number },
+        reportUrl: { type: String },
+      },
+    ],
   },
   {
     minimize: false,

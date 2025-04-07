@@ -8,7 +8,12 @@ import {
   deleteExistingCvDetails,
   getSuggestInternships,
   getStudentRegisteredId,
+  getStudentData,
   getGpaDistribution,
+  getRegistrationId,
+  saveWeeklyReportData,
+  getWeeklyReports,
+  deleteWeeklyReport,
 } from "../controllers/student/studentController.js";
 import {
   applyInternshipController,
@@ -32,6 +37,11 @@ studentRouter.post("/getSubmitted", getSubmittedApplicationsController);
 studentRouter.post("/newChances", remainInternshipController);
 
 studentRouter.get("/getStudentRegisteredId", getStudentRegisteredId);
-studentRouter.get("/gpa-distribution",getGpaDistribution);
+studentRouter.post("/getStudentName", getStudentData);
+studentRouter.get("/gpa-distribution", getGpaDistribution);
+studentRouter.post("/getRegistrationId", getRegistrationId);
+studentRouter.post("/saveWeeklyReport", saveWeeklyReportData);
+studentRouter.post("/getWeeklyReports", getWeeklyReports);
+studentRouter.delete("/deleteWeeklyReport", deleteWeeklyReport);
 
 export default studentRouter;
