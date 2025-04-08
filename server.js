@@ -7,6 +7,7 @@ import studentRouter from "./routes/studentRoute.js";
 import companyRouter from "./routes/companyRoute.js";
 import calenderRouter from "./routes/calenderRoute.js";
 import adminRouter from "./routes/adminRoute.js";
+import mentorRouter from "./routes/mentorRoute.js";
 
 //app config
 const app = express();
@@ -26,6 +27,7 @@ app.use("/api/student", studentRouter);
 app.use("/api/company", companyRouter);
 app.use("/api/calender", calenderRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/mentor", mentorRouter);
 
 app.get("/", (req, res) => {
   res.send("Back end is running");

@@ -127,6 +127,8 @@ const updateCvStatusController = async (req, res) => {
   }
 };
 
+
+
 export {
   companyProfileController,
   getCompanyController,

@@ -311,7 +311,6 @@ const saveWeeklyReportData = async (req, res) => {
       return res.json({
         success: true,
         message: "Data saved",
-
       });
     }
   } catch (error) {
@@ -319,26 +318,28 @@ const saveWeeklyReportData = async (req, res) => {
   }
 };
 
-const getWeeklyReports = async(req,res) => {
+const getWeeklyReports = async (req, res) => {
   const { userEmail } = req.body;
   try {
-    const profile = await studentProfileModel.findOne({ registeredEmail: userEmail });
-    if(profile) {
-      return res.json({success:true, data:profile.weekly});
+    const profile = await studentProfileModel.findOne({
+      registeredEmail: userEmail,
+    });
+    if (profile) {
+      return res.json({ success: true, data: profile.weekly });
     }
   } catch (error) {
-    return res.json({success:false, message:error});
+    return res.json({ success: false, message: error });
   }
-}
+};
 
-const deleteWeeklyReport = async(req,res) => {
-  const { userEmail,id } = req.body;
+const deleteWeeklyReport = async (req, res) => {
+  const { userEmail, id } = req.body;
   try {
     const Profile = await studentProfileModel.findOneAndUpdate(
       { registeredEmail: userEmail },
       { $pull: { weekly: { _id: id } } },
       { new: true }
-    ); 
+    );
     if (!Profile) {
       return res.json({ success: false, message: "Profile not found" });
     }
@@ -348,9 +349,12 @@ const deleteWeeklyReport = async(req,res) => {
       data: Profile.weekly,
     });
   } catch (error) {
-    return res.json({success:false, message:"An unexpected error occured!"})
+    return res.json({
+      success: false,
+      message: "An unexpected error occured!",
+    });
   }
-}
+};
 
 export {
   studentProfileController,
