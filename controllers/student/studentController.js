@@ -20,6 +20,7 @@ const studentProfileController = async (req, res) => {
     cv,
     verify,
     userEmail,
+    address,
     certifications,
     cvName,
     cvPosition,
@@ -68,6 +69,7 @@ const studentProfileController = async (req, res) => {
         registeredEmail: userEmail,
         certifications: certificationArray,
         cvData: validCvDetails,
+        address:address,
       });
       await newStudent.save();
       return res.json({ success: true, message: "Saved successfully!" });
@@ -356,6 +358,43 @@ const deleteWeeklyReport = async (req, res) => {
   }
 };
 
+const getStudentProfileById = async (req, res) => {
+  const { studentId } = req.body;
+
+  if (!studentId) {
+    return res.status(400).json({ success: false, message: "Student ID is required" });
+  }
+
+  try {
+    const studentData = await studentProfileModel.findOne({
+      registrationNumber: studentId,
+    });
+
+    if (studentData) {
+      return res.status(200).json({ 
+        success: true, 
+        data: {
+          fullName: studentData.fullName,
+          universityMail: studentData.universityMail,
+          contactNumber: studentData.contactNumber,
+          address: studentData.address || "", // fallback in case it's null
+        } 
+      });
+    } else {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching student profile:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+
+
 export {
   studentProfileController,
   getProfileController,
@@ -371,4 +410,5 @@ export {
   saveWeeklyReportData,
   getWeeklyReports,
   deleteWeeklyReport,
+  getStudentProfileById,
 };

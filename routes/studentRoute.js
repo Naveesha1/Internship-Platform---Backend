@@ -14,10 +14,13 @@ import {
   saveWeeklyReportData,
   getWeeklyReports,
   deleteWeeklyReport,
+  getStudentProfileById,
 } from "../controllers/student/studentController.js";
 import {
   applyInternshipController,
   getAllInternshipController,
+  getMatchingInternshipsController,
+  getResponseCompaniesController,
   getSubmittedApplicationsController,
   remainInternshipController,
 } from "../controllers/internshipController.js";
@@ -27,6 +30,7 @@ const studentRouter = express.Router();
 studentRouter.post("/profile", studentProfileController);
 studentRouter.post("/getprofile", getProfileController);
 studentRouter.get("/allInternships", getAllInternshipController);
+studentRouter.post("/getMatchingInternshipsController",getMatchingInternshipsController);
 studentRouter.post("/getCvDetails", getCvDetailsController);
 studentRouter.put("/addNewCvDetails", addNewCvDetailsController);
 studentRouter.put("/updateNewCv", updateExistingCvDetails);
@@ -43,5 +47,7 @@ studentRouter.post("/getRegistrationId", getRegistrationId);
 studentRouter.post("/saveWeeklyReport", saveWeeklyReportData);
 studentRouter.post("/getWeeklyReports", getWeeklyReports);
 studentRouter.delete("/deleteWeeklyReport", deleteWeeklyReport);
+studentRouter.post("/getStudentProfileById",getStudentProfileById);
+studentRouter.post("/getResponseCompaniesController",getResponseCompaniesController);
 
 export default studentRouter;

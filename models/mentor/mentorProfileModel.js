@@ -7,6 +7,15 @@ const profileSchema = new mongoose.Schema(
     contactNumber: { type: String, required: true },
     position: { type: String, required: true },
     registeredEmail: { type: String, required: true },
+
+    monthly: [
+      {
+        name: { type: String },
+        index:{type:String},
+        month: { type: String },
+        reportUrl: { type: String },
+      },
+    ],
   },
   {
     minimize: false,

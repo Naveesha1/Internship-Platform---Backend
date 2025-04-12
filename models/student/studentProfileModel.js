@@ -16,6 +16,7 @@ const profileSchema = new mongoose.Schema(
     qualification: [{ type: String }],
     verify: { type: Boolean, default: null },
     registeredEmail: { type: String, required: true },
+    address:{type:String, required: true},
     date: {
       type: String,
       default: () => new Date().toISOString().split("T")[0],
@@ -29,6 +30,13 @@ const profileSchema = new mongoose.Schema(
       },
     ],
     weekly: [
+      {
+        month: { type: String },
+        weekNo: { type: Number },
+        reportUrl: { type: String },
+      },
+    ],
+    monthly: [
       {
         month: { type: String },
         weekNo: { type: Number },
