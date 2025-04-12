@@ -320,6 +320,32 @@ const saveWeeklyReportData = async (req, res) => {
   }
 };
 
+const saveMonthlyReportData = async (req, res) => {
+  const { universityMail, number, reportUrl, month,duration } = req.body;
+  try {
+    const profile = await studentProfileModel.findOne({ universityMail });
+    console.log(profile);
+    if (profile) {
+      const newMonthlyData = {
+        month: month,
+        number: number,
+        duration:duration,
+        reportUrl: reportUrl,
+      };
+      profile.monthly.push(newMonthlyData);
+      await profile.save();
+      return res.json({
+        success: true,
+        message: "Data saved",
+      });
+    }
+  } catch (error) {
+    return res.json({ success: false, message: error });
+  }
+};
+
+
+
 const getWeeklyReports = async (req, res) => {
   const { userEmail } = req.body;
   try {
@@ -328,6 +354,20 @@ const getWeeklyReports = async (req, res) => {
     });
     if (profile) {
       return res.json({ success: true, data: profile.weekly });
+    }
+  } catch (error) {
+    return res.json({ success: false, message: error });
+  }
+};
+
+const getMonthlyReports = async (req, res) => {
+  const { userEmail } = req.body;
+  try {
+    const profile = await studentProfileModel.findOne({
+      registeredEmail: userEmail,
+    });
+    if (profile) {
+      return res.json({ success: true, data: profile.monthly });
     }
   } catch (error) {
     return res.json({ success: false, message: error });
@@ -357,6 +397,31 @@ const deleteWeeklyReport = async (req, res) => {
     });
   }
 };
+
+const deleteMonthlyReport = async (req, res) => {
+  const { userEmail, id } = req.body;
+  try {
+    const Profile = await studentProfileModel.findOneAndUpdate(
+      { registeredEmail: userEmail },
+      { $pull: { monthly: { _id: id } } },
+      { new: true }
+    );
+    if (!Profile) {
+      return res.json({ success: false, message: "Profile not found" });
+    }
+    return res.json({
+      success: true,
+      message: "Successfully deleted",
+      data: Profile.monthly,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: "An unexpected error occured!",
+    });
+  }
+};
+
 
 const getStudentProfileById = async (req, res) => {
   const { studentId } = req.body;
@@ -393,6 +458,73 @@ const getStudentProfileById = async (req, res) => {
   }
 };
 
+// Add this to your controller file
+const updateProfileController = async (req, res) => {
+  const { userId, ...updateData } = req.body;
+  
+  try {
+    // Process arrays if they're provided as comma-separated strings
+    if (updateData.skills && typeof updateData.skills === 'string') {
+      updateData.skills = updateData.skills.split(',').map(skill => skill.trim());
+    }
+    
+    if (updateData.qualification && typeof updateData.qualification === 'string') {
+      updateData.qualification = updateData.qualification.split(',').map(qual => qual.trim());
+    }
+    
+    if (updateData.position && typeof updateData.position === 'string') {
+      updateData.position = updateData.position.split(',').map(pos => pos.trim());
+    }
+    
+    if (updateData.certifications && typeof updateData.certifications === 'string') {
+      updateData.certifications = updateData.certifications.split(',').map(cert => cert.trim());
+    }
+
+    // Handle CV data update if provided
+    if (updateData.cv && updateData.cvName && updateData.cvPosition) {
+      const cvData = {
+        title: updateData.cvPosition,
+        cvUrl: updateData.cv,
+        fileName: updateData.cvName
+      };
+      
+      // Remove individual CV fields from updateData
+      delete updateData.cv;
+      delete updateData.cvName;
+      delete updateData.cvPosition;
+      
+      // Use $set to add/update the CV data
+      updateData.cvData = [cvData];
+    }
+
+    // Find and update the student profile
+    const updatedProfile = await studentProfileModel.findOneAndUpdate(
+      { registeredEmail: updateData.userEmail || updateData.registeredEmail },
+      { $set: updateData },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedProfile) {
+      return res.status(404).json({ success: false, message: "Profile not found" });
+    }
+
+    return res.json({ 
+      success: true, 
+      message: "Profile updated successfully", 
+      data: updatedProfile 
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating profile",
+      error: error.message
+    });
+  }
+};
+
+
+
 
 
 export {
@@ -411,4 +543,8 @@ export {
   getWeeklyReports,
   deleteWeeklyReport,
   getStudentProfileById,
+  updateProfileController,
+  saveMonthlyReportData,
+  getMonthlyReports,
+  deleteMonthlyReport,
 };

@@ -15,12 +15,17 @@ import {
   getWeeklyReports,
   deleteWeeklyReport,
   getStudentProfileById,
+  updateProfileController,
+  saveMonthlyReportData,
+  getMonthlyReports,
+  deleteMonthlyReport,
 } from "../controllers/student/studentController.js";
 import {
   applyInternshipController,
   getAllInternshipController,
   getMatchingInternshipsController,
   getResponseCompaniesController,
+  getSeparateResponseCountsController,
   getSubmittedApplicationsController,
   remainInternshipController,
 } from "../controllers/internshipController.js";
@@ -49,5 +54,11 @@ studentRouter.post("/getWeeklyReports", getWeeklyReports);
 studentRouter.delete("/deleteWeeklyReport", deleteWeeklyReport);
 studentRouter.post("/getStudentProfileById",getStudentProfileById);
 studentRouter.post("/getResponseCompaniesController",getResponseCompaniesController);
+studentRouter.post("/respinseCompaniesRejectOrAccept",getSeparateResponseCountsController);
+studentRouter.put("/updateStudentProfile",updateProfileController);
+studentRouter.post("/saveMonthlyReportStudent",saveMonthlyReportData);
+studentRouter.post("/getMonthlyReports",getMonthlyReports);
+studentRouter.delete("/deleteMonthlyReport",deleteMonthlyReport);
+
 
 export default studentRouter;

@@ -39,8 +39,9 @@ const profileSchema = new mongoose.Schema(
     monthly: [
       {
         month: { type: String },
-        weekNo: { type: Number },
+        number: { type: Number },
         reportUrl: { type: String },
+        duration:{type: String },
       },
     ],
   },
