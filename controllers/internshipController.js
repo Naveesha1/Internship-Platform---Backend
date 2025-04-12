@@ -271,6 +271,37 @@ const getResponseCompaniesController = async (req, res) => {
 };
 
 
+const getSeparateResponseCountsController = async (req, res) => {
+  const { userEmail } = req.body;
+
+  try {
+    const acceptedCount = await applyInternshipModel.countDocuments({
+      userEmail,
+      status: true,
+    });
+
+    const rejectedCount = await applyInternshipModel.countDocuments({
+      userEmail,
+      status: false,
+    });
+
+    return res.json({
+      success: true,
+      acceptedCount,
+      rejectedCount,
+    });
+  } catch (error) {
+    console.error("Error fetching accept/reject counts:", error);
+    return res.json({
+      success: false,
+      message: "Failed to fetch counts",
+    });
+  }
+};
+
+
+
+
 export {
   createInternshipController,
   getAllInternshipController,
@@ -279,4 +310,5 @@ export {
   remainInternshipController,
   getResponseCompaniesController,
   getMatchingInternshipsController,
+  getSeparateResponseCountsController,
 };
