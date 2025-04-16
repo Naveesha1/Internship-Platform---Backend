@@ -7,6 +7,7 @@ const profileSchema = new mongoose.Schema(
     contactNumber: { type: String, required: true },
     position: { type: String, required: true },
     registeredEmail: { type: String, required: true },
+    company:{type: String},
 
     monthly: [
       {
@@ -16,6 +17,28 @@ const profileSchema = new mongoose.Schema(
         reportUrl: { type: String },
       },
     ],
+    
+    weekly: [
+      {
+        name: { type: String },
+        index:{type:String},
+        weekNo: { type: Number },
+        reportUrl: { type: String },
+      },
+    ],
+    student:[
+      {
+        registrationNumber:{type:String},
+        name:{type:String},
+        email:{type:String},
+        phone:{type:String},
+        address:{type:String},
+        startDate:{type:String},
+        endDate:{type:String},
+        position:{type:String},
+      },
+    ],
+
   },
   {
     minimize: false,
