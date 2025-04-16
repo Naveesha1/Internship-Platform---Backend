@@ -15,6 +15,7 @@ import {
   getPendingCompaniesCountController,
   getMonthlyRegistrationStatsController,
 } from "../controllers/admin/adminController.js";
+import { getSkillsDemandController } from "../controllers/internshipController.js";
 
 const adminRouter = express.Router();
 
@@ -33,5 +34,6 @@ adminRouter.get("/getPendingCompanies", getPendingCompaniesCountController);
 adminRouter.get("/getVerifiedStudents", getVerifiedStudentsCountController);
 adminRouter.get("/getPendingStudents", getPendingStudentsCountController);
 adminRouter.get("/monthlyRegistrationStatus", getMonthlyRegistrationStatsController);
+adminRouter.get("/getSkillDemand",getSkillsDemandController)
 
 export default adminRouter;

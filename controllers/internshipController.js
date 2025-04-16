@@ -300,6 +300,103 @@ const getSeparateResponseCountsController = async (req, res) => {
 };
 
 
+// List of IT-related skills to filter from keywords
+const itSkills = [
+  "HTML", "CSS", "JavaScript", "TypeScript", "React", "Angular", "Vue", "Svelte",
+  "Node.js", "Express", "Nest.js", "Django", "Flask", "FastAPI", 
+  "Python", "Java", "C#", "C++", "Ruby", "PHP", "Go", "Rust", "Swift", "Kotlin",
+  "MongoDB", "MySQL", "PostgreSQL", "Oracle", "SQL Server", "Redis", "Firebase",
+  "AWS", "Azure", "GCP", "Docker", "Kubernetes", "Jenkins", "GitLab CI", "GitHub Actions",
+  "REST API", "GraphQL", "gRPC", "WebSockets", "Microservices", "Serverless",
+  "TensorFlow", "PyTorch", "scikit-learn", "Pandas", "NumPy", "Machine Learning", "AI",
+  "Blockchain", "Ethereum", "Solidity", "Smart Contracts", "NFT", "Web3",
+  "React Native", "Flutter", "iOS", "Android", "Xamarin", "Ionic",
+  "Unity", "Unreal Engine", "Game Development", "AR", "VR", "XR",
+  "UI/UX", "Figma", "Adobe XD", "Sketch", "Photoshop", "Illustrator",
+  "Git", "GitHub", "BitBucket", "SVN", "Agile", "Scrum", "Kanban", "Jira",
+  "DevOps", "CI/CD", "Testing", "QA", "Jest", "Cypress", "Selenium", "Playwright",
+  "SEO", "Analytics", "Digital Marketing", "Content Management",
+  "Linux", "Unix", "Bash", "PowerShell", "Shell Scripting",
+  "IoT", "Embedded Systems", "RTOS", "Firmware", "Hardware Programming",
+  "Network Security", "Cybersecurity", "Penetration Testing", "Ethical Hacking", "Cryptography",
+  "Hadoop", "Spark", "Big Data", "Data Mining", "Data Science", "ETL",
+  ".NET", "ASP.NET", "Spring", "Laravel", "Rails", "Next.js", "Gatsby",
+  "SASS", "LESS", "Tailwind CSS", "Bootstrap", "Material UI", "Styled Components",
+  "PWA", "SPA", "SSR", "SSG", "JAMstack", "Webpack", "Babel", "Rollup", "Vite"
+];
+
+// Controller to get skills demand data
+const getSkillsDemandController = async (req, res) => {
+  try {
+    // Fetch all internships to extract keywords
+    const internships = await internshipModel.find();
+    
+    if (!internships || internships.length === 0) {
+      return res.json({ 
+        success: true, 
+        data: [],
+        message: "No internship data available" 
+      });
+    }
+    
+    // Create a map to count occurrences of each skill
+    const skillsCount = {};
+    
+    // Process each internship's keywords
+    internships.forEach(internship => {
+      // Skip if no keywords
+      if (!internship.keywords || !Array.isArray(internship.keywords)) return;
+      
+      // Process each keyword
+      internship.keywords.forEach(keyword => {
+        // Normalize the keyword (trim whitespace and make case-insensitive comparison)
+        const normalizedKeyword = keyword.trim();
+        
+        // Check if this keyword is an IT skill (case-insensitive check)
+        const isITSkill = itSkills.some(skill => 
+          skill.toLowerCase() === normalizedKeyword.toLowerCase()
+        );
+        
+        // If it's an IT skill, increment its count
+        if (isITSkill) {
+          // Use the original format from the itSkills array for consistency
+          const matchedSkill = itSkills.find(skill => 
+            skill.toLowerCase() === normalizedKeyword.toLowerCase()
+          );
+          
+          if (matchedSkill) {
+            if (skillsCount[matchedSkill]) {
+              skillsCount[matchedSkill]++;
+            } else {
+              skillsCount[matchedSkill] = 1;
+            }
+          }
+        }
+      });
+    });
+    
+    // Convert the map to an array format for the frontend
+    const skillsData = Object.entries(skillsCount)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value) // Sort by count in descending order
+      .slice(0, 5); // Get top 5 skills
+    
+    return res.json({
+      success: true,
+      data: skillsData,
+      totalInternships: internships.length
+    });
+    
+  } catch (error) {
+    console.error("Error in getSkillsDemandController:", error);
+    return res.json({ 
+      success: false, 
+      message: "Failed to fetch skills demand data" 
+    });
+  }
+};
+
+
 
 
 export {
@@ -311,4 +408,5 @@ export {
   getResponseCompaniesController,
   getMatchingInternshipsController,
   getSeparateResponseCountsController,
+  getSkillsDemandController,
 };
