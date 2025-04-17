@@ -116,17 +116,24 @@ const saveMonthlyReportData = async (req, res) => {
   }
 };
 
+
 const getMonthlyReports = async (req, res) => {
   const { userEmail } = req.body;
   try {
     const profile = await MentorProfileModel.findOne({
       registeredEmail: userEmail,
     });
+    
     if (profile) {
+      // Return the monthly reports as they are stored in the database
+      // The frontend will handle grouping them by student
       return res.json({ success: true, data: profile.monthly });
+    } else {
+      return res.json({ success: false, message: "Mentor profile not found" });
     }
   } catch (error) {
-    return res.json({ success: false, message: error });
+    console.error("Error fetching monthly reports:", error);
+    return res.json({ success: false, message: error.message });
   }
 };
 
@@ -160,13 +167,133 @@ const deleteMonthlyReport = async (req, res) => {
   }
 };
 
+// Add a student to mentor's profile
+const addStudentToMentor = async (req, res) => {
+  const { registeredEmail, student } = req.body;
+
+  try {
+    const mentor = await MentorProfileModel.findOne({ registeredEmail });
+
+    if (!mentor) {
+      return res.json({ success: false, message: "Mentor not found" });
+    }
+
+    // Check if student with the same registration number already exists
+    const isDuplicate = mentor.student.some(
+      existingStudent => existingStudent.registrationNumber === student.registrationNumber
+    );
+
+    if (isDuplicate) {
+      return res.json({ 
+        success: false, 
+        message: "Student with this registration number already exists" 
+      });
+    }
+
+    // Add student to the array
+    mentor.student.push(student);
+    await mentor.save();
+
+    return res.json({ success: true, message: "Student added successfully!" });
+  } catch (error) {
+    console.error(error);
+    return res.json({ success: false, message: "Failed to add student" });
+  }
+};
+
+// Get all students assigned to a mentor
+const getStudents = async (req, res) => {
+  const { registeredEmail } = req.body;
+  
+  try {
+    const mentor = await MentorProfileModel.findOne({ registeredEmail });
+    
+    if (!mentor) {
+      return res.json({ 
+        success: false, 
+        message: "Mentor not found" 
+      });
+    }
+    
+    // Return the student array from the mentor's profile
+    return res.json({ 
+      success: true, 
+      data: mentor.student || [] 
+    });
+    
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    return res.json({
+      success: false,
+      message: "An unexpected error occurred while fetching students"
+    });
+  }
+};
+
+// Get report submission statistics for all students
+const getReportStatistics = async (req, res) => {
+  try {
+    // Find all mentor profiles to aggregate student data
+    const mentors = await MentorProfileModel.find({});
+    
+    // Initialize counters
+    let totalStudents = 0;
+    let weeklyReportsCount = 0;
+    let monthlyReportsCount = 0;
+    
+    // Count total students, weekly reports, and monthly reports
+    mentors.forEach(mentor => {
+      // Add this mentor's students to total count
+      totalStudents += mentor.student.length;
+      
+      // Count weekly reports
+      weeklyReportsCount += mentor.weekly.length;
+      
+      // Count monthly reports
+      monthlyReportsCount += mentor.monthly.length;
+    });
+    
+    // Calculate not submitted counts
+    const weeklyNotSubmitted = Math.max(0, totalStudents - weeklyReportsCount);
+    const monthlyNotSubmitted = Math.max(0, totalStudents - monthlyReportsCount);
+    
+    // Format the response data for the frontend
+    const reportStats = {
+      weekly: [
+        { name: 'Submitted', value: weeklyReportsCount },
+        { name: 'Not Submitted', value: weeklyNotSubmitted }
+      ],
+      monthly: [
+        { name: 'Submitted', value: monthlyReportsCount },
+        { name: 'Not Submitted', value: monthlyNotSubmitted }
+      ]
+    };
+    
+    return res.json({
+      success: true,
+      data: reportStats
+    });
+    
+  } catch (error) {
+    console.error("Error fetching report statistics:", error);
+    return res.json({
+      success: false,
+      message: "An unexpected error occurred while fetching report statistics"
+    });
+  }
+};
+
+
+
 export {
   createNewMentorController,
   getMentorProfileController,
   getAllMentorProfilesController,
   deleteMentorController,
-  getMentorProfile,
   saveMonthlyReportData,
   getMonthlyReports,
   deleteMonthlyReport,
+  addStudentToMentor,
+  getStudents,
+  getReportStatistics,
 };
