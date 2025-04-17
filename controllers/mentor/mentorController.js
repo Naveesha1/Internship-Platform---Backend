@@ -1,7 +1,8 @@
 import MentorProfileModel from "../../models/mentor/mentorProfileModel.js";
+import StudentProfileModel from "../../models/student/studentProfileModel.js";
 import UserModel from "../../models/userModel.js";
 import mongoose from "mongoose";
-import bcrypt from 'bcrypt'
+import bcrypt from "bcrypt";
 
 const createNewMentorController = async (req, res) => {
   const { name, position, email, password } = req.body;
@@ -10,20 +11,22 @@ const createNewMentorController = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const mentor = await UserModel.findOne({ email: email });
-    if(mentor){
-      return res.json({success:false, message:"Mentor already exists!"});
+    if (mentor) {
+      return res.json({ success: false, message: "Mentor already exists!" });
+    } else {
+      const newAdmin = new UserModel({
+        name: name,
+        position: position,
+        email: email,
+        password: hashedPassword,
+        role: "Mentor",
+      });
+      await newAdmin.save();
+      return res.json({
+        success: true,
+        message: "Mentor created successfully!",
+      });
     }
-    else {
-    const newAdmin = new UserModel({
-      name: name,
-      position: position,
-      email: email,
-      password: hashedPassword,
-      role: "Mentor",
-    });
-    await newAdmin.save();
-    return res.json({ success: true, message: "Mentor created successfully!" });
-   }
   } catch (error) {
     console.log(error);
 
@@ -56,26 +59,6 @@ const deleteMentorController = async (req, res) => {
     }
   } catch (error) {
     return res.json({ success: false, message: "An error occured" });
-  }
-};
-
-const getMentorProfile = async (req, res) => {
-  const { registeredEmail } = req.body;
-  try {
-    const profile = await MentorProfileModel.findOne({ registeredEmail });
-    if (!profile) {
-      return res.json({
-        success: false,
-        message: "Mentor details not available!",
-      });
-    } else {
-      return res.json({ success: true, data: profile });
-    }
-  } catch (error) {
-    return res.json({
-      success: false,
-      message: "An unexpected error occured!",
-    });
   }
 };
 
@@ -116,14 +99,13 @@ const saveMonthlyReportData = async (req, res) => {
   }
 };
 
-
 const getMonthlyReports = async (req, res) => {
   const { userEmail } = req.body;
   try {
     const profile = await MentorProfileModel.findOne({
       registeredEmail: userEmail,
     });
-    
+
     if (profile) {
       // Return the monthly reports as they are stored in the database
       // The frontend will handle grouping them by student
@@ -180,13 +162,14 @@ const addStudentToMentor = async (req, res) => {
 
     // Check if student with the same registration number already exists
     const isDuplicate = mentor.student.some(
-      existingStudent => existingStudent.registrationNumber === student.registrationNumber
+      (existingStudent) =>
+        existingStudent.registrationNumber === student.registrationNumber
     );
 
     if (isDuplicate) {
-      return res.json({ 
-        success: false, 
-        message: "Student with this registration number already exists" 
+      return res.json({
+        success: false,
+        message: "Student with this registration number already exists",
       });
     }
 
@@ -204,28 +187,27 @@ const addStudentToMentor = async (req, res) => {
 // Get all students assigned to a mentor
 const getStudents = async (req, res) => {
   const { registeredEmail } = req.body;
-  
+
   try {
     const mentor = await MentorProfileModel.findOne({ registeredEmail });
-    
+
     if (!mentor) {
-      return res.json({ 
-        success: false, 
-        message: "Mentor not found" 
+      return res.json({
+        success: false,
+        message: "Mentor not found",
       });
     }
-    
+
     // Return the student array from the mentor's profile
-    return res.json({ 
-      success: true, 
-      data: mentor.student || [] 
+    return res.json({
+      success: true,
+      data: mentor.student || [],
     });
-    
   } catch (error) {
     console.error("Error fetching students:", error);
     return res.json({
       success: false,
-      message: "An unexpected error occurred while fetching students"
+      message: "An unexpected error occurred while fetching students",
     });
   }
 };
@@ -235,55 +217,88 @@ const getReportStatistics = async (req, res) => {
   try {
     // Find all mentor profiles to aggregate student data
     const mentors = await MentorProfileModel.find({});
-    
+
     // Initialize counters
     let totalStudents = 0;
     let weeklyReportsCount = 0;
     let monthlyReportsCount = 0;
-    
+
     // Count total students, weekly reports, and monthly reports
-    mentors.forEach(mentor => {
+    mentors.forEach((mentor) => {
       // Add this mentor's students to total count
       totalStudents += mentor.student.length;
-      
+
       // Count weekly reports
       weeklyReportsCount += mentor.weekly.length;
-      
+
       // Count monthly reports
       monthlyReportsCount += mentor.monthly.length;
     });
-    
+
     // Calculate not submitted counts
     const weeklyNotSubmitted = Math.max(0, totalStudents - weeklyReportsCount);
-    const monthlyNotSubmitted = Math.max(0, totalStudents - monthlyReportsCount);
-    
+    const monthlyNotSubmitted = Math.max(
+      0,
+      totalStudents - monthlyReportsCount
+    );
+
     // Format the response data for the frontend
     const reportStats = {
       weekly: [
-        { name: 'Submitted', value: weeklyReportsCount },
-        { name: 'Not Submitted', value: weeklyNotSubmitted }
+        { name: "Submitted", value: weeklyReportsCount },
+        { name: "Not Submitted", value: weeklyNotSubmitted },
       ],
       monthly: [
-        { name: 'Submitted', value: monthlyReportsCount },
-        { name: 'Not Submitted', value: monthlyNotSubmitted }
-      ]
+        { name: "Submitted", value: monthlyReportsCount },
+        { name: "Not Submitted", value: monthlyNotSubmitted },
+      ],
     };
-    
+
     return res.json({
       success: true,
-      data: reportStats
+      data: reportStats,
     });
-    
   } catch (error) {
     console.error("Error fetching report statistics:", error);
     return res.json({
       success: false,
-      message: "An unexpected error occurred while fetching report statistics"
+      message: "An unexpected error occurred while fetching report statistics",
     });
   }
 };
 
+const getWeeklyReports = async (req, res) => {
+  const { registeredEmail } = req.body;
+  try {
+    const mentor = await MentorProfileModel.findOne({ registeredEmail:registeredEmail });
+    const registrationNumbers = mentor.student.map(student => student.registrationNumber);
 
+    const studentProfiles = await StudentProfileModel.find({
+      registrationNumber: { $in: registrationNumbers }
+    });
+
+    const studentsWithWeekly = [];
+
+    let idCounter = 1;
+
+    studentProfiles.forEach(profile => {
+      profile.weekly.forEach(weeklyEntry => {
+        studentsWithWeekly.push({
+          id: idCounter++,
+          fullName: profile.fullName,
+          registrationNumber: profile.registrationNumber,
+          weekNo: weeklyEntry.weekNo,
+          reportUrl: weeklyEntry.reportUrl
+        });
+      });
+    });
+
+    
+    return res.json({success:true, data:studentsWithWeekly});
+  } catch (error) {
+    return res.json({success:false, message:"An unexpected error occured!"})
+  }
+}
 
 export {
   createNewMentorController,
@@ -296,4 +311,5 @@ export {
   addStudentToMentor,
   getStudents,
   getReportStatistics,
+  getWeeklyReports,
 };

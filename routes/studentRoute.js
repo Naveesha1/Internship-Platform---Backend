@@ -19,6 +19,7 @@ import {
   saveMonthlyReportData,
   getMonthlyReports,
   deleteMonthlyReport,
+  updateWeeklyReport,
 } from "../controllers/student/studentController.js";
 import {
   applyInternshipController,
@@ -59,6 +60,7 @@ studentRouter.put("/updateStudentProfile",updateProfileController);
 studentRouter.post("/saveMonthlyReportStudent",saveMonthlyReportData);
 studentRouter.post("/getMonthlyReports",getMonthlyReports);
 studentRouter.delete("/deleteMonthlyReport",deleteMonthlyReport);
+studentRouter.post("/updateWeeklyReport",updateWeeklyReport);
 
 
 export default studentRouter;
