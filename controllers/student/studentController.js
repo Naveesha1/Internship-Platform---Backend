@@ -301,7 +301,6 @@ const saveWeeklyReportData = async (req, res) => {
   const { registeredEmail, weekNo, reportUrl, month } = req.body;
   try {
     const profile = await studentProfileModel.findOne({ registeredEmail });
-    console.log(profile);
     if (profile) {
       const newWeeklyData = {
         month: month,
@@ -524,6 +523,38 @@ const updateProfileController = async (req, res) => {
 };
 
 
+const updateWeeklyReport = async (req, res) => {
+  const { registrationNumber, weekNo, reportUrl } = req.body;
+
+  try {
+    // First, find the student to check if a weekly report with that weekNo exists
+    const student = await studentProfileModel.findOne({ registrationNumber });
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    const existingWeek = student.weekly.find(week => week.weekNo === weekNo);
+
+    if (!existingWeek) {
+      return res.status(404).json({ success: false, message: "Week not found in student's weekly reports" });
+    }
+    // Update the reportUrl for the matching weekNo
+    const result = await studentProfileModel.updateOne(
+      { registrationNumber },
+      {
+        $set: { "weekly.$[elem].reportUrl": reportUrl },
+      },
+      {
+        arrayFilters: [{ "elem.weekNo": weekNo }],
+      }
+    );
+    return res.status(200).json({ success: true, message: "Weekly report updated" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "An unexpected error occurred!" });
+  }
+};
 
 
 
@@ -547,4 +578,5 @@ export {
   saveMonthlyReportData,
   getMonthlyReports,
   deleteMonthlyReport,
+  updateWeeklyReport,
 };
