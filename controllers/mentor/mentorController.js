@@ -14,14 +14,14 @@ const createNewMentorController = async (req, res) => {
     if (mentor) {
       return res.json({ success: false, message: "Mentor already exists!" });
     } else {
-      const newAdmin = new UserModel({
+      const newMentor = new UserModel({
         name: name,
         position: position,
         email: email,
         password: hashedPassword,
         role: "Mentor",
       });
-      await newAdmin.save();
+      await newMentor.save();
       return res.json({
         success: true,
         message: "Mentor created successfully!",
@@ -30,6 +30,33 @@ const createNewMentorController = async (req, res) => {
   } catch (error) {
     console.log(error);
 
+    return res.json({ success: false, message: "An error occured!" });
+  }
+};
+
+const createMentorProfileController = async (req, res) => {
+  const { name, address, registeredEmail, company,position,contactNumber } = req.body;
+
+  try {
+      const newProfile = new MentorProfileModel({
+        name: name,
+        position: position,
+        address: address,
+        registeredEmail: registeredEmail,
+        company: company,
+        contactNumber: contactNumber,
+        monthly: [],
+        weekly: [],
+        student: [],
+      });
+      await newProfile.save();
+      return res.json({
+        success: true,
+        message: "Profile created successfully!",
+      });
+    
+  } catch (error) {
+    console.error("Mentor profile creation error:", error);
     return res.json({ success: false, message: "An error occured!" });
   }
 };
@@ -312,4 +339,5 @@ export {
   getStudents,
   getReportStatistics,
   getWeeklyReports,
+  createMentorProfileController,
 };
