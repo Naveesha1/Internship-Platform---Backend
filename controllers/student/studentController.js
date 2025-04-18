@@ -69,7 +69,7 @@ const studentProfileController = async (req, res) => {
         registeredEmail: userEmail,
         certifications: certificationArray,
         cvData: validCvDetails,
-        address:address,
+        address: address,
       });
       await newStudent.save();
       return res.json({ success: true, message: "Saved successfully!" });
@@ -320,7 +320,7 @@ const saveWeeklyReportData = async (req, res) => {
 };
 
 const saveMonthlyReportData = async (req, res) => {
-  const { universityMail, number, reportUrl, month,duration } = req.body;
+  const { universityMail, number, reportUrl, month, duration } = req.body;
   try {
     const profile = await studentProfileModel.findOne({ universityMail });
     console.log(profile);
@@ -328,7 +328,7 @@ const saveMonthlyReportData = async (req, res) => {
       const newMonthlyData = {
         month: month,
         number: number,
-        duration:duration,
+        duration: duration,
         reportUrl: reportUrl,
       };
       profile.monthly.push(newMonthlyData);
@@ -342,8 +342,6 @@ const saveMonthlyReportData = async (req, res) => {
     return res.json({ success: false, message: error });
   }
 };
-
-
 
 const getWeeklyReports = async (req, res) => {
   const { userEmail } = req.body;
@@ -421,12 +419,13 @@ const deleteMonthlyReport = async (req, res) => {
   }
 };
 
-
 const getStudentProfileById = async (req, res) => {
   const { studentId } = req.body;
 
   if (!studentId) {
-    return res.status(400).json({ success: false, message: "Student ID is required" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Student ID is required" });
   }
 
   try {
@@ -435,17 +434,19 @@ const getStudentProfileById = async (req, res) => {
     });
 
     if (studentData) {
-      return res.status(200).json({ 
-        success: true, 
+      return res.status(200).json({
+        success: true,
         data: {
           fullName: studentData.fullName,
           universityMail: studentData.universityMail,
           contactNumber: studentData.contactNumber,
           address: studentData.address || "", // fallback in case it's null
-        } 
+        },
       });
     } else {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
     }
   } catch (error) {
     console.error("Error fetching student profile:", error);
@@ -460,23 +461,37 @@ const getStudentProfileById = async (req, res) => {
 // Add this to your controller file
 const updateProfileController = async (req, res) => {
   const { userId, ...updateData } = req.body;
-  
+
   try {
     // Process arrays if they're provided as comma-separated strings
-    if (updateData.skills && typeof updateData.skills === 'string') {
-      updateData.skills = updateData.skills.split(',').map(skill => skill.trim());
+    if (updateData.skills && typeof updateData.skills === "string") {
+      updateData.skills = updateData.skills
+        .split(",")
+        .map((skill) => skill.trim());
     }
-    
-    if (updateData.qualification && typeof updateData.qualification === 'string') {
-      updateData.qualification = updateData.qualification.split(',').map(qual => qual.trim());
+
+    if (
+      updateData.qualification &&
+      typeof updateData.qualification === "string"
+    ) {
+      updateData.qualification = updateData.qualification
+        .split(",")
+        .map((qual) => qual.trim());
     }
-    
-    if (updateData.position && typeof updateData.position === 'string') {
-      updateData.position = updateData.position.split(',').map(pos => pos.trim());
+
+    if (updateData.position && typeof updateData.position === "string") {
+      updateData.position = updateData.position
+        .split(",")
+        .map((pos) => pos.trim());
     }
-    
-    if (updateData.certifications && typeof updateData.certifications === 'string') {
-      updateData.certifications = updateData.certifications.split(',').map(cert => cert.trim());
+
+    if (
+      updateData.certifications &&
+      typeof updateData.certifications === "string"
+    ) {
+      updateData.certifications = updateData.certifications
+        .split(",")
+        .map((cert) => cert.trim());
     }
 
     // Handle CV data update if provided
@@ -484,14 +499,14 @@ const updateProfileController = async (req, res) => {
       const cvData = {
         title: updateData.cvPosition,
         cvUrl: updateData.cv,
-        fileName: updateData.cvName
+        fileName: updateData.cvName,
       };
-      
+
       // Remove individual CV fields from updateData
       delete updateData.cv;
       delete updateData.cvName;
       delete updateData.cvPosition;
-      
+
       // Use $set to add/update the CV data
       updateData.cvData = [cvData];
     }
@@ -504,24 +519,25 @@ const updateProfileController = async (req, res) => {
     );
 
     if (!updatedProfile) {
-      return res.status(404).json({ success: false, message: "Profile not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
     }
 
-    return res.json({ 
-      success: true, 
-      message: "Profile updated successfully", 
-      data: updatedProfile 
+    return res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedProfile,
     });
   } catch (error) {
     console.error("Error updating profile:", error);
     return res.status(500).json({
       success: false,
       message: "An error occurred while updating profile",
-      error: error.message
+      error: error.message,
     });
   }
 };
-
 
 const updateWeeklyReport = async (req, res) => {
   const { registrationNumber, weekNo, reportUrl } = req.body;
@@ -531,13 +547,20 @@ const updateWeeklyReport = async (req, res) => {
     const student = await studentProfileModel.findOne({ registrationNumber });
 
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
     }
 
-    const existingWeek = student.weekly.find(week => week.weekNo === weekNo);
+    const existingWeek = student.weekly.find((week) => week.weekNo === weekNo);
 
     if (!existingWeek) {
-      return res.status(404).json({ success: false, message: "Week not found in student's weekly reports" });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Week not found in student's weekly reports",
+        });
     }
     // Update the reportUrl for the matching weekNo
     const result = await studentProfileModel.updateOne(
@@ -549,14 +572,16 @@ const updateWeeklyReport = async (req, res) => {
         arrayFilters: [{ "elem.weekNo": weekNo }],
       }
     );
-    return res.status(200).json({ success: true, message: "Weekly report updated" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Weekly report updated" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "An unexpected error occurred!" });
+    return res
+      .status(500)
+      .json({ success: false, message: "An unexpected error occurred!" });
   }
 };
-
-
 
 export {
   studentProfileController,

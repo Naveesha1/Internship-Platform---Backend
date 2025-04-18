@@ -11,11 +11,13 @@ import {
   getReportStatistics,
   getStudents,
   getWeeklyReports,
+  createMentorProfileController,
 } from "../controllers/mentor/mentorController.js";
 
 const mentorRouter = express.Router();
 
 mentorRouter.post("/createMentor", createNewMentorController);
+mentorRouter.post("/createProfile", createMentorProfileController);
 mentorRouter.post("/deleteMentor", deleteMentorController);
 mentorRouter.post("/getProfile", getMentorProfileController);
 mentorRouter.get("/getAllProfiles", getAllMentorProfilesController);
