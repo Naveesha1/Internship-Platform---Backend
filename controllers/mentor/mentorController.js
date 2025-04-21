@@ -1,7 +1,6 @@
 import MentorProfileModel from "../../models/mentor/mentorProfileModel.js";
 import StudentProfileModel from "../../models/student/studentProfileModel.js";
 import UserModel from "../../models/userModel.js";
-import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 const createNewMentorController = async (req, res) => {
@@ -28,9 +27,7 @@ const createNewMentorController = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error);
-
-    return res.json({ success: false, message: "An error occured!" });
+    return res.json({ success: false, message: "An error occurred!" });
   }
 };
 
@@ -56,8 +53,7 @@ const createMentorProfileController = async (req, res) => {
       });
     
   } catch (error) {
-    console.error("Mentor profile creation error:", error);
-    return res.json({ success: false, message: "An error occured!" });
+    return res.json({ success: false, message: "An error occurred!" });
   }
 };
 
@@ -106,7 +102,16 @@ const saveMonthlyReportData = async (req, res) => {
   const { registeredEmail, name, index, reportUrl, month } = req.body;
   try {
     const profile = await MentorProfileModel.findOne({ registeredEmail });
-    console.log(profile);
+    const studentProfile = await StudentProfileModel.findOne({
+      registrationNumber: index});
+    if(studentProfile) {
+      const newMonthlyData = {
+        month: month,
+        name: name,
+        index: index,
+        reportUrl: reportUrl,
+      };
+    }
     if (profile) {
       const newMonthlyData = {
         month: month,
@@ -141,7 +146,6 @@ const getMonthlyReports = async (req, res) => {
       return res.json({ success: false, message: "Mentor profile not found" });
     }
   } catch (error) {
-    console.error("Error fetching monthly reports:", error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -166,7 +170,6 @@ const deleteMonthlyReport = async (req, res) => {
       data: Profile.monthly,
     });
   } catch (error) {
-    console.error(error);
     return res.json({
       success: false,
       message: "An unexpected error occurred!",
@@ -204,7 +207,6 @@ const addStudentToMentor = async (req, res) => {
 
     return res.json({ success: true, message: "Student added successfully!" });
   } catch (error) {
-    console.error(error);
     return res.json({ success: false, message: "Failed to add student" });
   }
 };
@@ -284,7 +286,6 @@ const getReportStatistics = async (req, res) => {
       data: reportStats,
     });
   } catch (error) {
-    console.error("Error fetching report statistics:", error);
     return res.json({
       success: false,
       message: "An unexpected error occurred while fetching report statistics",
