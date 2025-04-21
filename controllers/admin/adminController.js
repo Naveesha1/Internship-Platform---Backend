@@ -161,7 +161,7 @@ const getVerifiedCompaniesCountController = async (req, res) => {
     if (count) {
       return res.json({ success: true, count: count });
     } else {
-      returnres.json({ success: false });
+      return res.json({ success: false });
     }
   } catch (error) {
     return res.json({ success: false });
@@ -176,7 +176,7 @@ const getPendingCompaniesCountController = async (req, res) => {
     if (count) {
       return res.json({ success: true, count: count });
     } else {
-      returnres.json({ success: false });
+      return res.json({ success: false });
     }
   } catch (error) {
     return res.json({ success: false });
@@ -191,7 +191,7 @@ const getVerifiedStudentsCountController = async (req, res) => {
     if (count) {
       return res.json({ success: true, count: count });
     } else {
-      returnres.json({ success: false });
+      return res.json({ success: false });
     }
   } catch (error) {
     return res.json({ success: false });
@@ -206,7 +206,7 @@ const getPendingStudentsCountController = async (req, res) => {
     if (count) {
       return res.json({ success: true, count: count });
     } else {
-      returnres.json({ success: false });
+      return res.json({ success: false });
     }
   } catch (error) {
     return res.json({ success: false });
