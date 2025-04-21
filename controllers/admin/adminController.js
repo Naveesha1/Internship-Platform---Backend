@@ -54,16 +54,21 @@ const createNewAdminController = async (req, res) => {
 };
 
 const deleteAdminController = async (req, res) => {
-  const { email } = req.body;
+  const { email,registeredEmail } = req.body;
   try {
+    if(email === registeredEmail) {
+      return res.json({ success: false, message: "You cannot delete yourself!" });
+    }
+    else{
     const result = await UserModel.deleteOne({ email: email });
     if (result.deletedCount > 0) {
       return res.json({ success: true, message: "Successfully deleted!" });
     } else {
       return res.json({ success: false, message: "Failed to delete!" });
     }
+    }
   } catch (error) {
-    return res.json({ success: false, message: "An error occured" });
+    return res.json({ success: false, message: "An error occurred" });
   }
 };
 

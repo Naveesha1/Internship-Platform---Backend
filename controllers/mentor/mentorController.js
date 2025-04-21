@@ -85,7 +85,7 @@ const deleteMentorController = async (req, res) => {
       return res.json({ success: false, message: "Failed to Delete!" });
     }
   } catch (error) {
-    return res.json({ success: false, message: "An error occured" });
+    return res.json({ success: false, message: "An error occurred" });
   }
 };
 
