@@ -85,7 +85,7 @@ const deleteMentorController = async (req, res) => {
       return res.json({ success: false, message: "Failed to Delete!" });
     }
   } catch (error) {
-    return res.json({ success: false, message: "An error occured" });
+    return res.json({ success: false, message: "An error occurred" });
   }
 };
 
@@ -150,11 +150,9 @@ const deleteMonthlyReport = async (req, res) => {
   const { userEmail, reportId } = req.body; // Use reportId here as passed from the frontend
   try {
     // Convert reportId to ObjectId
-    const reportIdObject = mongoose.Types.ObjectId(reportId);
-
     const Profile = await MentorProfileModel.findOneAndUpdate(
       { registeredEmail: userEmail },
-      { $pull: { monthly: { _id: reportIdObject } } },
+      { $pull: { monthly: { _id: reportId } } },
       { new: true }
     );
 
