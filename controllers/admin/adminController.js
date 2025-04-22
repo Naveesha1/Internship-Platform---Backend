@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 import companyProfileModel from "../../models/company/companyProfileModel.js";
 import mentorProfileModel from "../../models/mentor/mentorProfileModel.js";
 
-
 const getAdminProfileController = async (req, res) => {
   const { registeredEmail } = req.body;
   try {
@@ -56,18 +55,20 @@ const createNewAdminController = async (req, res) => {
 };
 
 const deleteAdminController = async (req, res) => {
-  const { email,registeredEmail } = req.body;
+  const { email, registeredEmail } = req.body;
   try {
-    if(email === registeredEmail) {
-      return res.json({ success: false, message: "You cannot delete yourself!" });
-    }
-    else{
-    const result = await UserModel.deleteOne({ email: email });
-    if (result.deletedCount > 0) {
-      return res.json({ success: true, message: "Successfully deleted!" });
+    if (email === registeredEmail) {
+      return res.json({
+        success: false,
+        message: "You cannot delete yourself!",
+      });
     } else {
-      return res.json({ success: false, message: "Failed to delete!" });
-    }
+      const result = await UserModel.deleteOne({ email: email });
+      if (result.deletedCount > 0) {
+        return res.json({ success: true, message: "Successfully deleted!" });
+      } else {
+        return res.json({ success: false, message: "Failed to delete!" });
+      }
     }
   } catch (error) {
     return res.json({ success: false, message: "An error occurred" });
@@ -93,6 +94,36 @@ const getAllInternshipsController = async (req, res) => {
 const getAllStudentsController = async (req, res) => {
   try {
     const students = await StudentProfileModel.find();
+    if (students) {
+      return res.json({ success: true, data: students });
+    } else {
+      return res.json({ success: false, message: "Error getting students!" });
+    }
+  } catch (error) {
+    return res.json({ success: false, message: "Server error" });
+  }
+};
+
+const getMonthlyReportsAvailableStudents = async (req, res) => {
+  try {
+    const students = await StudentProfileModel.find({
+      monthly: { $exists: true, $not: { $size: 0 } },
+    });
+    if (students) {
+      return res.json({ success: true, data: students });
+    } else {
+      return res.json({ success: false, message: "Error getting students!" });
+    }
+  } catch (error) {
+    return res.json({ success: false, message: "Server error" });
+  }
+};
+
+const getWeeklyReportsAvailableStudents = async (req, res) => {
+  try {
+    const students = await StudentProfileModel.find({
+      weekly: { $exists: true, $not: { $size: 0 } },
+    });
     if (students) {
       return res.json({ success: true, data: students });
     } else {
@@ -258,99 +289,116 @@ const getMonthlyRegistrationStatsController = async (req, res) => {
     // Merge student and company data
     const response = {};
     studentData.forEach((entry) => {
-      response[entry._id] = { studentCount: entry.studentCount, companyCount: 0 };
+      response[entry._id] = {
+        studentCount: entry.studentCount,
+        companyCount: 0,
+      };
     });
     companyData.forEach((entry) => {
       if (response[entry._id]) {
         response[entry._id].companyCount = entry.companyCount;
       } else {
-        response[entry._id] = { studentCount: 0, companyCount: entry.companyCount };
+        response[entry._id] = {
+          studentCount: 0,
+          companyCount: entry.companyCount,
+        };
       }
     });
 
     return res.json({ success: true, data: response });
   } catch (error) {
     console.log(error);
-    return res.json({ success: false, message: "Error fetching monthly stats" });
+    return res.json({
+      success: false,
+      message: "Error fetching monthly stats",
+    });
   }
 };
-
 
 const getInternshipStatistics = async (req, res) => {
   try {
     // Get all verified students
-    const allVerifiedStudents = await StudentProfileModel.find({ verify: true });
-    
+    const allVerifiedStudents = await StudentProfileModel.find({
+      verify: true,
+    });
+
     // Filter students by degree
-    const itStudents = allVerifiedStudents.filter(student => student.degree === "IT");
-    const itmStudents = allVerifiedStudents.filter(student => student.degree === "ITM");
-    const aiStudents = allVerifiedStudents.filter(student => student.degree === "AI");
-    
+    const itStudents = allVerifiedStudents.filter(
+      (student) => student.degree === "IT"
+    );
+    const itmStudents = allVerifiedStudents.filter(
+      (student) => student.degree === "ITM"
+    );
+    const aiStudents = allVerifiedStudents.filter(
+      (student) => student.degree === "AI"
+    );
+
     // Get all mentors with students
     const allMentors = await mentorProfileModel.find({});
-    
+
     // Extract all registration numbers of students with internships
     const studentsWithInternships = new Set();
-    allMentors.forEach(mentor => {
-      mentor.student.forEach(student => {
+    allMentors.forEach((mentor) => {
+      mentor.student.forEach((student) => {
         studentsWithInternships.add(student.registrationNumber);
       });
     });
-    
+
     // Count students with internships by degree
     let itWithInternship = 0;
     let itmWithInternship = 0;
     let aiWithInternship = 0;
-    
+
     // Count internships for IT students
-    itStudents.forEach(student => {
+    itStudents.forEach((student) => {
       if (studentsWithInternships.has(student.registrationNumber)) {
         itWithInternship++;
       }
     });
-    
+
     // Count internships for ITM students
-    itmStudents.forEach(student => {
+    itmStudents.forEach((student) => {
       if (studentsWithInternships.has(student.registrationNumber)) {
         itmWithInternship++;
       }
     });
-    
+
     // Count internships for AI students
-    aiStudents.forEach(student => {
+    aiStudents.forEach((student) => {
       if (studentsWithInternships.has(student.registrationNumber)) {
         aiWithInternship++;
       }
     });
-    
+
     // Calculate totals
     const totalItStudents = itStudents.length;
     const totalItmStudents = itmStudents.length;
     const totalAiStudents = aiStudents.length;
     const totalAllStudents = allVerifiedStudents.length;
-    const totalWithInternship = itWithInternship + itmWithInternship + aiWithInternship;
-    
+    const totalWithInternship =
+      itWithInternship + itmWithInternship + aiWithInternship;
+
     // Prepare chart data in the format expected by the frontend
     const itInternshipData = [
       { name: "Got Internship", value: itWithInternship },
-      { name: "No Internship", value: totalItStudents - itWithInternship }
+      { name: "No Internship", value: totalItStudents - itWithInternship },
     ];
-    
+
     const itmInternshipData = [
       { name: "Got Internship", value: itmWithInternship },
-      { name: "No Internship", value: totalItmStudents - itmWithInternship }
+      { name: "No Internship", value: totalItmStudents - itmWithInternship },
     ];
-    
+
     const aiInternshipData = [
       { name: "Got Internship", value: aiWithInternship },
-      { name: "No Internship", value: totalAiStudents - aiWithInternship }
+      { name: "No Internship", value: totalAiStudents - aiWithInternship },
     ];
-    
+
     const allInternshipData = [
       { name: "Got Internship", value: totalWithInternship },
-      { name: "No Internship", value: totalAllStudents - totalWithInternship }
+      { name: "No Internship", value: totalAllStudents - totalWithInternship },
     ];
-    
+
     // Return the prepared data
     return res.status(200).json({
       success: true,
@@ -360,25 +408,23 @@ const getInternshipStatistics = async (req, res) => {
         aiInternship: aiInternshipData,
         allInternship: allInternshipData,
       },
-      message: "Internship statistics fetched successfully"
+      message: "Internship statistics fetched successfully",
     });
-    
   } catch (error) {
     console.error("Error fetching internship statistics:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch internship statistics",
-      error: error.message
+      error: error.message,
     });
   }
 };
-
 
 const getSelectionStatistics = async (req, res) => {
   try {
     // Find all mentor profiles that have students
     const mentorProfiles = await mentorProfileModel.find({
-      student: { $exists: true, $not: { $size: 0 } }
+      student: { $exists: true, $not: { $size: 0 } },
     });
 
     // Object to track company counts
@@ -387,16 +433,18 @@ const getSelectionStatistics = async (req, res) => {
     const positionCounts = {};
 
     // Process each mentor profile
-    mentorProfiles.forEach(mentor => {
+    mentorProfiles.forEach((mentor) => {
       // Count the company
       if (mentor.company) {
-        companyCounts[mentor.company] = (companyCounts[mentor.company] || 0) + mentor.student.length;
+        companyCounts[mentor.company] =
+          (companyCounts[mentor.company] || 0) + mentor.student.length;
       }
-      
+
       // Count positions for each student
-      mentor.student.forEach(student => {
+      mentor.student.forEach((student) => {
         if (student.position) {
-          positionCounts[student.position] = (positionCounts[student.position] || 0) + 1;
+          positionCounts[student.position] =
+            (positionCounts[student.position] || 0) + 1;
         }
       });
     });
@@ -417,56 +465,57 @@ const getSelectionStatistics = async (req, res) => {
       success: true,
       data: {
         topCompanies,
-        allPositions
-      }
+        allPositions,
+      },
     });
-    
   } catch (error) {
     console.error("Error fetching selection statistics:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch selection statistics",
-      error: error.message
+      error: error.message,
     });
   }
 };
-
 
 const getMonthlyInternshipsByDegree = async (req, res) => {
   try {
     // Get current date
     const currentDate = new Date();
-    
+
     // Calculate start date (4 months ago)
     const startDate = new Date();
     startDate.setMonth(currentDate.getMonth() - 3); // -3 to include current month (total 4 months)
-    
+
     // Get all mentor profiles that have students
-    const mentorProfiles = await mentorProfileModel.find({
-      "student.0": { $exists: true }  // Find only mentors who have at least one student
-    }, {
-      "student": 1  // Project only the student field
-    });
+    const mentorProfiles = await mentorProfileModel.find(
+      {
+        "student.0": { $exists: true }, // Find only mentors who have at least one student
+      },
+      {
+        student: 1, // Project only the student field
+      }
+    );
 
     // Initialize monthly data structure
     const monthlyData = {};
-    
+
     // Get month names for the last 4 months
     const months = [];
     for (let i = 0; i < 4; i++) {
       const monthDate = new Date(currentDate);
       monthDate.setMonth(currentDate.getMonth() - i);
-      const monthName = monthDate.toLocaleString('default', { month: 'short' });
+      const monthName = monthDate.toLocaleString("default", { month: "short" });
       const year = monthDate.getFullYear();
       const monthKey = `${monthName} ${year}`;
       months.unshift(monthKey);
-      
+
       // Initialize monthly data
       monthlyData[monthKey] = {
         month: monthKey,
         IT: 0,
         ITM: 0,
-        AI: 0
+        AI: 0,
       };
     }
 
@@ -475,33 +524,40 @@ const getMonthlyInternshipsByDegree = async (req, res) => {
       for (const student of mentor.student) {
         // Skip if no start date
         if (!student.startDate) continue;
-        
+
         // Parse start date
         const startDate = new Date(student.startDate);
-        
+
         // Only include students from the last 4 months
-        if (startDate < new Date(currentDate.getFullYear(), currentDate.getMonth() - 3, 1)) {
+        if (
+          startDate <
+          new Date(currentDate.getFullYear(), currentDate.getMonth() - 3, 1)
+        ) {
           continue;
         }
 
         // Get month key
-        const monthName = startDate.toLocaleString('default', { month: 'short' });
+        const monthName = startDate.toLocaleString("default", {
+          month: "short",
+        });
         const year = startDate.getFullYear();
         const monthKey = `${monthName} ${year}`;
-        
+
         // Skip if month is not in our range
         if (!monthlyData[monthKey]) continue;
-        
+
         // Get student details to determine degree
-        const studentDetails = await StudentProfileModel.findOne({ registrationNumber: student.registrationNumber });
-        
+        const studentDetails = await StudentProfileModel.findOne({
+          registrationNumber: student.registrationNumber,
+        });
+
         if (studentDetails && studentDetails.degree) {
           // Increment count based on degree
-          if (studentDetails.degree === 'IT' && monthlyData[monthKey]) {
+          if (studentDetails.degree === "IT" && monthlyData[monthKey]) {
             monthlyData[monthKey].IT++;
-          } else if (studentDetails.degree === 'ITM' && monthlyData[monthKey]) {
+          } else if (studentDetails.degree === "ITM" && monthlyData[monthKey]) {
             monthlyData[monthKey].ITM++;
-          } else if (studentDetails.degree === 'AI' && monthlyData[monthKey]) {
+          } else if (studentDetails.degree === "AI" && monthlyData[monthKey]) {
             monthlyData[monthKey].AI++;
           }
         }
@@ -509,18 +565,18 @@ const getMonthlyInternshipsByDegree = async (req, res) => {
     }
 
     // Convert object to array for charting
-    const result = months.map(month => monthlyData[month]);
+    const result = months.map((month) => monthlyData[month]);
 
     return res.status(200).json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error("Error fetching monthly internship statistics:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch monthly internship statistics",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -543,4 +599,6 @@ export {
   getInternshipStatistics,
   getSelectionStatistics,
   getMonthlyInternshipsByDegree,
+  getMonthlyReportsAvailableStudents,
+  getWeeklyReportsAvailableStudents,
 };

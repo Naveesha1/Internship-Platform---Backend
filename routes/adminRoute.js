@@ -17,6 +17,8 @@ import {
   getInternshipStatistics,
   getSelectionStatistics,
   getMonthlyInternshipsByDegree,
+  getMonthlyReportsAvailableStudents,
+  getWeeklyReportsAvailableStudents,
 } from "../controllers/admin/adminController.js";
 import { getSkillsDemandController } from "../controllers/internshipController.js";
 
@@ -41,5 +43,7 @@ adminRouter.get("/getSkillDemand",getSkillsDemandController);
 adminRouter.get("/getInternshipStatistics",getInternshipStatistics);
 adminRouter.get("/getSelectionStatistics",getSelectionStatistics);
 adminRouter.get("/getMonthlyInternshipsByDegree",getMonthlyInternshipsByDegree);
+adminRouter.get("/getMonthlyReportsAvailableStudents",getMonthlyReportsAvailableStudents);
+adminRouter.get("/getWeeklyReportsAvailableStudents",getWeeklyReportsAvailableStudents);
 
 export default adminRouter;
