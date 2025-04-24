@@ -3,6 +3,13 @@ import companyProfileModel from "../../models/company/companyProfileModel.js";
 import internshipModel from "../../models/company/internshipModel.js";
 import applyInternshipModel from "../../models/student/applyInternshipModel.js";
 
+import axios from 'axios';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
+
+
+
 // Profile setting up controller
 const companyProfileController = async (req, res) => {
   const {
@@ -129,10 +136,168 @@ const updateCvStatusController = async (req, res) => {
 
 
 
+// New controller function for CV analysis
+const analyzeCvController = async (req, res) => {
+  try {
+    const { cvUrl, internshipId } = req.body;
+    
+    if (!cvUrl || !internshipId) {
+      return res.status(400).json({
+        success: false,
+        message: "CV URL and internship ID are required"
+      });
+    }
+    
+    // Fetch internship details to get requirements, responsibilities, and keywords
+    const internship = await internshipModel.findById(internshipId);
+    if (!internship) {
+      return res.status(404).json({
+        success: false,
+        message: "Internship not found"
+      });
+    }
+    
+
+    // Extract text from the CV PDF
+    const cvText = await extractTextFromPdf(cvUrl);
+    if (!cvText) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to extract text from CV"
+      });
+    }
+    
+    // Calculate match score based on requirements, responsibilities, and keywords
+    const matchResult = calculateMatchScore(cvText, internship);
+    
+    return res.json({
+      success: true,
+      matchScore: matchResult.score,
+      matchedKeywords: matchResult.matchedKeywords
+    });
+    
+  } catch (error) {
+    console.error("Error in analyzeCv controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
+// Function to extract text from PDF using pdf-parse
+async function extractTextFromPdf(cvUrl) {
+  try {
+    console.log(`Attempting to download PDF from: ${cvUrl}`);
+    
+    // Force no cache and proper headers for Firebase
+    const response = await axios({
+      method: 'GET',
+      url: cvUrl,
+      responseType: 'arraybuffer',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
+    
+    console.log(`PDF downloaded, size: ${response.data.byteLength} bytes`);
+    
+    // Parse the PDF
+    const buffer = Buffer.from(response.data);
+    
+    // Basic options for pdf-parse
+    const options = {
+      max: 10 // Only process first 10 pages for speed
+    };
+    
+    const data = await pdfParse(buffer, options);
+    console.log(`PDF parsed, extracted ${data.text.length} characters of text`);
+    
+    return data.text;
+  } catch (error) {
+    console.error("PDF extraction error:", error.message);
+    
+    // Detailed error logging
+    if (error.response) {
+      console.error(`Status: ${error.response.status}`);
+      console.error("Headers:", JSON.stringify(error.response.headers));
+    } else if (error.request) {
+      console.error("No response received", error.request);
+    } else {
+      console.error("Error setting up request:", error.message);
+    }
+    
+    return null;
+  }
+  
+}
+
+
+
+// Function to calculate the match score
+function calculateMatchScore(cvText, internship) {
+  const normalizedCV = cvText.toLowerCase();
+  let totalMatches = 0;
+  let totalItems = 0;
+  let matchedKeywords = [];
+  
+  // Process requirements
+  if (internship.requirements && Array.isArray(internship.requirements)) {
+    internship.requirements.forEach(req => {
+      const reqLower = req.toLowerCase();
+      if (normalizedCV.includes(reqLower)) {
+        totalMatches += 1;
+        matchedKeywords.push(`Requirement: ${req}`);
+      }
+      totalItems += 1;
+    });
+  }
+  
+  // Process responsibilities
+  if (internship.responsibilities && Array.isArray(internship.responsibilities)) {
+    internship.responsibilities.forEach(resp => {
+      const respLower = resp.toLowerCase();
+      if (normalizedCV.includes(respLower)) {
+        totalMatches += 1;
+        matchedKeywords.push(`Responsibility: ${resp}`);
+      }
+      totalItems += 1;
+    });
+  }
+  
+  // Process keywords (giving them additional weight)
+  if (internship.keywords && Array.isArray(internship.keywords)) {
+    internship.keywords.forEach(keyword => {
+      const keywordLower = keyword.toLowerCase();
+      if (normalizedCV.includes(keywordLower)) {
+        // Keywords get double weight
+        totalMatches += 2;
+        matchedKeywords.push(`Keyword: ${keyword}`);
+      }
+      // Add 2 to total items to reflect the higher weight
+      totalItems += 2;
+    });
+  }
+  
+  // Calculate percentage match
+  // Avoid division by zero
+  const percentage = totalItems > 0 ? (totalMatches / totalItems) * 100 : 0;
+  
+  return {
+    score: Math.round(percentage * 10) / 10, // Round to 1 decimal place
+    matchedKeywords
+  };
+}
+
+
 export {
   companyProfileController,
   getCompanyController,
   getCompanySpecificInternshipController,
   getApplicantsController,
   updateCvStatusController,
+  analyzeCvController,
 };
