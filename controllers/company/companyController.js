@@ -292,6 +292,70 @@ function calculateMatchScore(cvText, internship) {
   };
 }
 
+const getApplicationCountController = async (req, res) => {
+  const { registeredEmail } = req.body;
+
+  try {
+    const applicationCount = await applyInternshipModel.countDocuments({
+      companyRegisteredEmail: registeredEmail,
+    });
+
+    return res.json({ success: true, count: applicationCount });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "An error occurred" });
+  }
+};
+
+const getPositionStatsController = async (req, res) => {
+  const { registeredEmail } = req.body;
+  
+  try {
+    // Get all applications for this company
+    const applications = await applyInternshipModel.find({
+      companyRegisteredEmail: registeredEmail,
+    });
+    
+    if (!applications || applications.length === 0) {
+      return res.json({ 
+        success: true, 
+        positionStats: [] 
+      });
+    }
+    
+    // Count applications by position
+    const positionCounts = {};
+    
+    applications.forEach(application => {
+      const position = application.position;
+      if (positionCounts[position]) {
+        positionCounts[position]++;
+      } else {
+        positionCounts[position] = 1;
+      }
+    });
+    
+    // Convert to array format for the chart
+    const positionStats = Object.keys(positionCounts).map(position => ({
+      position: position,
+      count: positionCounts[position]
+    }));
+    
+    // Sort by count (optional)
+    positionStats.sort((a, b) => b.count - a.count);
+    
+    return res.json({
+      success: true,
+      positionStats
+    });
+    
+  } catch (error) {
+    console.error("Error in getPositionStatsController:", error);
+    return res.json({ 
+      success: false, 
+      message: "An error occurred while fetching position statistics" 
+    });
+  }
+};
 
 export {
   companyProfileController,
@@ -300,4 +364,6 @@ export {
   getApplicantsController,
   updateCvStatusController,
   analyzeCvController,
+  getApplicationCountController,
+  getPositionStatsController,
 };
