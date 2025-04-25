@@ -27,7 +27,7 @@ mentorRouter.post("/getProfile", getMentorProfileController);
 mentorRouter.get("/getAllProfiles", getAllMentorProfilesController);
 mentorRouter.post("/saveMonthlyReportData", saveMonthlyReportData);
 mentorRouter.post("/getMonthlyReports", getMonthlyReports);
-mentorRouter.delete("/deleteMonthlyReport", deleteMonthlyReport);
+mentorRouter.post("/deleteMonthlyReport", deleteMonthlyReport);
 mentorRouter.post("/saveStudentData", addStudentToMentor);
 mentorRouter.post("/getAllStudent", getStudents);
 mentorRouter.get("/getReportStaus", getReportStatistics);
