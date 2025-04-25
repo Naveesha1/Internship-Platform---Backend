@@ -63,7 +63,6 @@ const createInternshipController = async (req, res) => {
     await updatedInternship.save();
     return res.json({ success: true, message: "Successfully created" });
   } catch (error) {
-    console.log("An error occured while creating internship", error);
     return res.json({ success: false, message: "Internship creating failed" });
   }
 };
@@ -82,44 +81,28 @@ const getAllInternshipController = async (req, res) => {
 const getMatchingInternshipsController = async (req, res) => {
   const { registeredEmail } = req.body;
   
-  try {
-    console.log("Searching for student with email:", registeredEmail);
-    
+  try {    
     // Find the student profile
     const studentProfile = await studentProfileModel.findOne({ registeredEmail });
     
     if (!studentProfile) {
-      console.log("Student profile not found for email:", registeredEmail);
       return res.json({ 
         success: false, 
         message: "Student profile not found" 
       });
-    }
-    
-    console.log("Found student profile:", studentProfile._id);
-    
+    }    
     // Extract student skills and positions
     const studentSkills = studentProfile.skills || [];
     const studentPositions = studentProfile.position || [];
-    
-    console.log("Student skills:", studentSkills);
-    console.log("Student positions:", studentPositions);
-    
+        
     // Combine skills and positions into a single array for matching
     const studentKeywords = [...studentSkills, ...studentPositions].map(keyword => 
       keyword.toLowerCase().trim()
     );
     
-    console.log("Student keywords for matching:", studentKeywords);
-
     // Get all internships
     const allInternships = await internshipModel.find();
-    console.log("Total internships found:", allInternships.length);
-    
-    // Check if internships have verification field
-    console.log("First internship verification status:", 
-      allInternships.length > 0 ? allInternships[0].verify : "No internships found");
-    
+        
     // Match internships with student keywords
     const matchingInternships = allInternships.filter(internship => {
       // Extract internship keywords and positions
@@ -131,28 +114,15 @@ const getMatchingInternshipsController = async (req, res) => {
         typeof keyword === 'string' ? keyword.toLowerCase().trim() : ''
       );
       
-      // Log matching attempt for debugging
-      console.log(
-        `Matching internship ${internship._id}, position: ${internship.position}, ` +
-        `keywords: ${JSON.stringify(internshipKeywords)}, ` +
-        `matchers: ${JSON.stringify(internshipMatchers)}`
-      );
-
       // Check if any student keyword matches any internship keyword
       const isMatch = studentKeywords.some(studentKeyword => 
         internshipMatchers.some(internshipMatcher => 
           internshipMatcher.includes(studentKeyword) || studentKeyword.includes(internshipMatcher)
         )
       );
-      
-      if (isMatch) {
-        console.log(`Match found for internship: ${internship._id}, position: ${internship.position}`);
-      }
-      
+            
       return isMatch;
     });
-
-    console.log("Total matching internships:", matchingInternships.length);
 
     return res.json({ 
       success: true, 
@@ -161,7 +131,6 @@ const getMatchingInternshipsController = async (req, res) => {
     });
     
   } catch (error) {
-    console.error("Error fetching matching internships:", error);
     return res.json({ 
       success: false, 
       message: "Error fetching matching internships" 

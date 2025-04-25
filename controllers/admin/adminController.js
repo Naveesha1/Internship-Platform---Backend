@@ -48,8 +48,6 @@ const createNewAdminController = async (req, res) => {
     await newAdmin.save();
     return res.json({ success: true, message: "Admin created successfully!" });
   } catch (error) {
-    console.log(error);
-
     return res.json({ success: false, message: "An error occured!" });
   }
 };
@@ -307,7 +305,6 @@ const getMonthlyRegistrationStatsController = async (req, res) => {
 
     return res.json({ success: true, data: response });
   } catch (error) {
-    console.log(error);
     return res.json({
       success: false,
       message: "Error fetching monthly stats",

@@ -29,7 +29,6 @@ const loginUser = async (req,res) => {
         
         res.json({success:true,token,userData})
     } catch (error) {
-        console.log(error);
         res.json({success:false,message:"Error"})
         
     }
@@ -69,7 +68,6 @@ const registerUser = async (req,res) => {
         res.json({success:true,message:"Registration success!"});
 
     } catch (error){
-        console.log(error);
         res.json({success:false,message:"error"});
         
     }
@@ -99,19 +97,16 @@ const forgotpasswordController = async (req, res) => {
     const sendMail = await sendForgotPasswordEmail(exists.email, link);
   
     if (sendMail) {
-        console.log(sendMail);
       return res.json({ success: false, message: "Error in sending password reset email" });
       
       
     } else {
-        console.log("mail sent");
       return res.json({ success: true, message: "Reset password email has sent to your email", });  
     }
   }
   
 } catch(error){
-    console.error("Error",error.message);
-    res.json({success:false,message:"error occured"});
+    res.json({success:false,message:"error occurred"});
 }
   };
   
@@ -165,8 +160,7 @@ const forgotpasswordController = async (req, res) => {
     }
     }
     catch(error){
-        console.log(error);
-        res.json({success:false,message:"An error has occured"});  
+        res.json({success:false,message:"An error has occurred"});  
     }
   };
 

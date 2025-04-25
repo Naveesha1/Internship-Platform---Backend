@@ -189,7 +189,6 @@ const analyzeCvController = async (req, res) => {
 // Function to extract text from PDF using pdf-parse
 async function extractTextFromPdf(cvUrl) {
   try {
-    console.log(`Attempting to download PDF from: ${cvUrl}`);
     
     // Force no cache and proper headers for Firebase
     const response = await axios({
@@ -202,9 +201,7 @@ async function extractTextFromPdf(cvUrl) {
         'Expires': '0',
       }
     });
-    
-    console.log(`PDF downloaded, size: ${response.data.byteLength} bytes`);
-    
+        
     // Parse the PDF
     const buffer = Buffer.from(response.data);
     
@@ -214,7 +211,6 @@ async function extractTextFromPdf(cvUrl) {
     };
     
     const data = await pdfParse(buffer, options);
-    console.log(`PDF parsed, extracted ${data.text.length} characters of text`);
     
     return data.text;
   } catch (error) {

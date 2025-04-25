@@ -49,7 +49,6 @@ const createNewMentorController = async (req, res) => {
       message: "Mentor created successfully!",
     });
   } catch (error) {
-    console.log(error);
     return res.json({ success: false, message: "An error occurred!" });
   }
 };
@@ -124,7 +123,6 @@ const deleteMentorController = async (req, res) => {
       message: "Mentor deleted successfully!",
     });
   } catch (error) {
-    console.log(error);
     return res.json({ success: false, message: "An error occurred!" });
   }
 };
@@ -145,7 +143,6 @@ const getCompanyMentorsController = async (req, res) => {
       mentors: company.mentors || []
     });
   } catch (error) {
-    console.log(error);
     return res.json({ success: false, message: "An error occurred!" });
   }
 };

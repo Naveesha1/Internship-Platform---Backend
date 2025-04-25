@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import internshipModel from "../../models/company/internshipModel.js";
 
 const studentProfileController = async (req, res) => {
-  console.log("Request Body:", req.body);
   const {
     fullName,
     registrationNumber,
@@ -199,8 +198,6 @@ const getSuggestInternships = async (req, res) => {
       return res.json({ success: true, data: suggestInternships });
     }
   } catch (error) {
-    console.log(error);
-
     return { success: false, message: "Error occured" };
   }
 };
@@ -213,7 +210,6 @@ const getStudentRegisteredId = async (req, res) => {
     );
     const registeredIds = studentIds.map((id) => id.registrationNumber);
     return res.json({ success: true, data: registeredIds });
-    console.log(registeredIds);
   } catch (error) {
     return res.json({ success: false, message: "An error occured" });
   }
@@ -323,7 +319,6 @@ const saveMonthlyReportData = async (req, res) => {
   const { universityMail, number, reportUrl, month, duration } = req.body;
   try {
     const profile = await studentProfileModel.findOne({ universityMail });
-    console.log(profile);
     if (profile) {
       const newMonthlyData = {
         month: month,
