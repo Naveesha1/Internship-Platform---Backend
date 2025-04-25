@@ -5,6 +5,9 @@ import {
   getCompanySpecificInternshipController,
   getApplicantsController,
   updateCvStatusController,
+  analyzeCvController,
+  getApplicationCountController,
+  getPositionStatsController,
 } from "../controllers/company/companyController.js";
 import { createInternshipController } from "../controllers/internshipController.js";
 
@@ -16,5 +19,9 @@ companyRouter.post("/getCompany", getCompanyController);
 companyRouter.post("/allInternships", getCompanySpecificInternshipController);
 companyRouter.post("/getApplicants", getApplicantsController);
 companyRouter.put("/updateStatus", updateCvStatusController);
+companyRouter.post("/analyzeCvController",analyzeCvController);
+companyRouter.post("/getApplicationCountController",getApplicationCountController);
+companyRouter.post("/getPositionStatsController",getPositionStatsController);
+
 
 export default companyRouter;

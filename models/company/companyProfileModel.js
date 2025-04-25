@@ -20,6 +20,13 @@ const companyProfileSchema = new mongoose.Schema(
     contactNumber: { type: String, required: true },
     verify: { type: Boolean, default: null },
     registeredEmail: { type: String, required: true },
+    
+    mentors:[{
+      mentorName:{type:String, required:true},
+      mentorPosition:{type:String, required:true},
+      mentorEmail:{type:String, required:true},
+    },  
+    ]
   },
   {
     minimize: false,

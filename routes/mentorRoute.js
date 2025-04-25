@@ -12,6 +12,10 @@ import {
   getStudents,
   getWeeklyReports,
   createMentorProfileController,
+  getMentorCountByCompanyController,
+  getCompanyMentorsController,
+  getInternEmployeeCountController,
+  getMentorDataDashboardCountsController,
 } from "../controllers/mentor/mentorController.js";
 
 const mentorRouter = express.Router();
@@ -28,5 +32,11 @@ mentorRouter.post("/saveStudentData", addStudentToMentor);
 mentorRouter.post("/getAllStudent", getStudents);
 mentorRouter.get("/getReportStaus", getReportStatistics);
 mentorRouter.post("/getWeeklyReports", getWeeklyReports);
+
+mentorRouter.post("/getMentorCountByCompanyController",getMentorCountByCompanyController)
+mentorRouter.post("/getCompanyMentorsController",getCompanyMentorsController);
+mentorRouter.post("/getInternEmployeeCountController",getInternEmployeeCountController)
+mentorRouter.post("/countStudentWeeklyMonthly",getMentorDataDashboardCountsController);
+
 
 export default mentorRouter;
