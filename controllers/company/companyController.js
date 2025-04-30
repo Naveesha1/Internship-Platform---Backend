@@ -135,8 +135,7 @@ const updateCvStatusController = async (req, res) => {
 };
 
 
-
-// New controller function for CV analysis
+// New controller function for CV analysis with targeted extraction
 const analyzeCvController = async (req, res) => {
   try {
     const { cvUrl, internshipId } = req.body;
@@ -157,7 +156,6 @@ const analyzeCvController = async (req, res) => {
       });
     }
     
-
     // Extract text from the CV PDF
     const cvText = await extractTextFromPdf(cvUrl);
     if (!cvText) {
@@ -167,8 +165,12 @@ const analyzeCvController = async (req, res) => {
       });
     }
     
+    // Extract just the skills and projects sections from the CV
+    const { technicalSkills, projects } = extractRelevantSections(cvText);
+    
     // Calculate match score based on requirements, responsibilities, and keywords
-    const matchResult = calculateMatchScore(cvText, internship);
+    // compared against just the skills and projects
+    const matchResult = calculateMatchScore(technicalSkills, projects, internship);
     
     return res.json({
       success: true,
@@ -232,65 +234,159 @@ async function extractTextFromPdf(cvUrl) {
     
     return null;
   }
-  
 }
 
+// Function to extract Technical Skills and Projects sections from CV text
+function extractRelevantSections(cvText) {
+  const lines = cvText.split('\n');
+  let technicalSkills = '';
+  let projects = '';
+  
+  let currentSection = null;
+  
+  // Common section header patterns
+  const skillSectionPatterns = [
+    /technical skills/i,
+    /skills/i,
+    /technical expertise/i,
+    /core competencies/i,
+    /technologies/i
+  ];
+  
+  const projectSectionPatterns = [
+    /projects/i,
+    /project experience/i,
+    /academic projects/i,
+    /personal projects/i,
+    /portfolio/i
+  ];
+  
+  // Other common section headers to detect section boundaries
+  const otherSectionPatterns = [
+    /education/i,
+    /experience/i,
+    /work experience/i,
+    /employment/i,
+    /certifications/i,
+    /achievements/i,
+    /languages/i,
+    /interests/i,
+    /references/i,
+    /contact/i,
+    /about me/i,
+    /summary/i,
+    /objective/i
+  ];
+  
+  // Process each line to identify sections and collect content
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines
+    if (!line) continue;
+    
+    // Check if this line is a skills section header
+    const isSkillsHeader = skillSectionPatterns.some(pattern => pattern.test(line));
+    if (isSkillsHeader) {
+      currentSection = 'skills';
+      continue;
+    }
+    
+    // Check if this line is a projects section header
+    const isProjectsHeader = projectSectionPatterns.some(pattern => pattern.test(line));
+    if (isProjectsHeader) {
+      currentSection = 'projects';
+      continue;
+    }
+    
+    // Check if this line is another section header, signaling the end of our current section
+    const isOtherHeader = otherSectionPatterns.some(pattern => pattern.test(line));
+    if (isOtherHeader) {
+      currentSection = null;
+      continue;
+    }
+    
+    // Collect content based on current section
+    if (currentSection === 'skills') {
+      technicalSkills += line + ' ';
+    } else if (currentSection === 'projects') {
+      projects += line + ' ';
+    }
+  }
+  
+  return {
+    technicalSkills: technicalSkills.trim(),
+    projects: projects.trim()
+  };
+}
 
-
-// Function to calculate the match score
-function calculateMatchScore(cvText, internship) {
-  const normalizedCV = cvText.toLowerCase();
-  let totalMatches = 0;
-  let totalItems = 0;
-  let matchedKeywords = [];
+// Function to calculate the match score based on just skills and projects
+function calculateMatchScore(technicalSkills, projects, internship) {
+  // Combine skills and projects for matching
+  const relevantCvContent = (technicalSkills + ' ' + projects).toLowerCase();
+  
+  // Combine all internship criteria into a single array for matching
+  const criteriaToMatch = [];
   
   // Process requirements
   if (internship.requirements && Array.isArray(internship.requirements)) {
     internship.requirements.forEach(req => {
-      const reqLower = req.toLowerCase();
-      if (normalizedCV.includes(reqLower)) {
-        totalMatches += 1;
-        matchedKeywords.push(`Requirement: ${req}`);
-      }
-      totalItems += 1;
+      criteriaToMatch.push({
+        text: req,
+        type: 'Requirement',
+        weight: 1
+      });
     });
   }
   
   // Process responsibilities
   if (internship.responsibilities && Array.isArray(internship.responsibilities)) {
     internship.responsibilities.forEach(resp => {
-      const respLower = resp.toLowerCase();
-      if (normalizedCV.includes(respLower)) {
-        totalMatches += 1;
-        matchedKeywords.push(`Responsibility: ${resp}`);
-      }
-      totalItems += 1;
+      criteriaToMatch.push({
+        text: resp,
+        type: 'Responsibility',
+        weight: 1
+      });
     });
   }
   
   // Process keywords (giving them additional weight)
   if (internship.keywords && Array.isArray(internship.keywords)) {
     internship.keywords.forEach(keyword => {
-      const keywordLower = keyword.toLowerCase();
-      if (normalizedCV.includes(keywordLower)) {
-        // Keywords get double weight
-        totalMatches += 2;
-        matchedKeywords.push(`Keyword: ${keyword}`);
-      }
-      // Add 2 to total items to reflect the higher weight
-      totalItems += 2;
+      criteriaToMatch.push({
+        text: keyword,
+        type: 'Keyword',
+        weight: 2  // Keywords have double weight
+      });
     });
   }
   
+  // Calculate matches
+  let totalWeightedItems = 0;
+  let totalMatches = 0;
+  let matchedKeywords = [];
+  
+  criteriaToMatch.forEach(criteria => {
+    const criteriaLower = criteria.text.toLowerCase();
+    if (relevantCvContent.includes(criteriaLower)) {
+      totalMatches += criteria.weight;
+      matchedKeywords.push(`${criteria.type}: ${criteria.text}`);
+    }
+    totalWeightedItems += criteria.weight;
+  });
+  
   // Calculate percentage match
   // Avoid division by zero
-  const percentage = totalItems > 0 ? (totalMatches / totalItems) * 100 : 0;
+  const percentage = totalWeightedItems > 0 ? (totalMatches / totalWeightedItems) * 100 : 0;
   
   return {
     score: Math.round(percentage * 10) / 10, // Round to 1 decimal place
     matchedKeywords
   };
 }
+
+
+
 
 const getApplicationCountController = async (req, res) => {
   const { registeredEmail } = req.body;

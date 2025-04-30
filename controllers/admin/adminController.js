@@ -121,15 +121,31 @@ const getMonthlyReportsAvailableStudents = async (req, res) => {
 
 const getWeeklyReportsAvailableStudents = async (req, res) => {
   try {
+    // Find students who have weekly reports with status "Viewed"
     const students = await StudentProfileModel.find({
-      weekly: { $exists: true, $not: { $size: 0 } },
+      "weekly.status": "Viewed" // Filter for weekly reports with status "Viewed"
     });
-    if (students) {
-      return res.json({ success: true, data: students });
+    
+    if (students && students.length > 0) {
+      // Filter each student's weekly array to only include entries with status "Viewed"
+      const filteredStudents = students.map(student => {
+        // Create a new object with all student properties
+        const filteredStudent = student.toObject();
+        
+        // Filter the weekly array to only include "Viewed" reports
+        filteredStudent.weekly = student.weekly.filter(report => 
+          report.status === "Viewed"
+        );
+        
+        return filteredStudent;
+      });
+      
+      return res.json({ success: true, data: filteredStudents });
     } else {
-      return res.json({ success: false, message: "Error getting students!" });
+      return res.json({ success: false, message: "No students with viewed weekly reports found!" });
     }
   } catch (error) {
+    console.error("Error fetching students with viewed reports:", error);
     return res.json({ success: false, message: "Server error" });
   }
 };
