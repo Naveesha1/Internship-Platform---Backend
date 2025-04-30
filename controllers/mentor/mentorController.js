@@ -55,11 +55,10 @@ const createNewMentorController = async (req, res) => {
 
 
 const createMentorProfileController = async (req, res) => {
-  const { name, address, registeredEmail, company,position,contactNumber } = req.body;
-
+  const { mentorName, address, registeredEmail, company,position,contactNumber } = req.body;
   try {
       const newProfile = new MentorProfileModel({
-        name: name,
+        name: mentorName,
         position: position,
         address: address,
         registeredEmail: registeredEmail,
@@ -83,14 +82,14 @@ const createMentorProfileController = async (req, res) => {
 const getMentorProfileController = async (req, res) => {
   const { registeredEmail } = req.body;
   try {
-    const getProfile = await UserModel.findOne({ email: registeredEmail });
+    const getProfile = await MentorProfileModel.findOne({ registeredEmail: registeredEmail });
     if (getProfile) {
       return res.json({ success: true, data: getProfile });
     } else {
       return res.json({ success: false });
     }
   } catch (error) {
-    return res.json({ success: false });
+    return res.json({ success: false, error:error });
   }
 };
 
