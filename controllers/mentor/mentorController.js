@@ -129,10 +129,10 @@ const deleteMentorController = async (req, res) => {
 
 // Get Company Mentors Controller
 const getCompanyMentorsController = async (req, res) => {
-  const { companyEmail } = req.body;
+  const { registeredEmail } = req.body;
   
   try {
-    const company = await CompanyModel.findOne({ email: companyEmail });
+    const company = await CompanyModel.findOne({ registeredEmail: registeredEmail });
     
     if (!company) {
       return res.json({ success: false, message: "Company not found!" });
@@ -355,10 +355,11 @@ const getReportStatistics = async (req, res) => {
   }
 };
 
+// mentorController
 const getWeeklyReports = async (req, res) => {
   const { registeredEmail } = req.body;
   try {
-    const mentor = await MentorProfileModel.findOne({ registeredEmail:registeredEmail });
+    const mentor = await MentorProfileModel.findOne({ registeredEmail: registeredEmail });
     const registrationNumbers = mentor.student.map(student => student.registrationNumber);
 
     const studentProfiles = await StudentProfileModel.find({
@@ -376,15 +377,15 @@ const getWeeklyReports = async (req, res) => {
           fullName: profile.fullName,
           registrationNumber: profile.registrationNumber,
           weekNo: weeklyEntry.weekNo,
-          reportUrl: weeklyEntry.reportUrl
+          reportUrl: weeklyEntry.reportUrl,
+          status: weeklyEntry.status || 'View' // Add status field with default 'View'
         });
       });
     });
-
     
-    return res.json({success:true, data:studentsWithWeekly});
+    return res.json({success: true, data: studentsWithWeekly});
   } catch (error) {
-    return res.json({success:false, message:"An unexpected error occured!"})
+    return res.json({success: false, message: "An unexpected error occurred!"})
   }
 }
 
@@ -444,20 +445,56 @@ const getMentorDataDashboardCountsController = async (req, res) => {
       return res.status(404).json({ success: false, message: "Mentor not found" });
     }
 
-    const weeklyCount = mentor.weekly?.length || 0;
     const monthlyCount = mentor.monthly?.length || 0;
     const studentCount = mentor.student?.length || 0;
 
     return res.json({
       success: true,
       data: {
-        weeklyCount,
         monthlyCount,
         studentCount,
       },
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: "An error occurred" });
+  }
+};
+
+const getWeeklyReportsCount = async (req, res) => {
+  const { registeredEmail } = req.body;
+  try {
+    // Find the mentor profile using the email
+    const mentor = await MentorProfileModel.findOne({ registeredEmail: registeredEmail });
+    
+    if (!mentor) {
+      return res.json({ success: false, message: "Mentor not found" });
+    }
+    
+    // Extract registration numbers of all students under this mentor
+    const registrationNumbers = mentor.student.map(student => student.registrationNumber);
+
+    // Find all student profiles that match these registration numbers
+    const studentProfiles = await StudentProfileModel.find({
+      registrationNumber: { $in: registrationNumbers }
+    });
+
+    // Count the total number of weekly reports
+    let totalWeeklyReports = 0;
+    
+    studentProfiles.forEach(profile => {
+      // Add the length of the weekly array for each student
+      totalWeeklyReports += profile.weekly.length;
+    });
+    
+    // Return only the count as you requested
+    return res.json({ 
+      success: true, 
+      count: totalWeeklyReports  // Changed to 'count' instead of 'data' object
+    });
+    
+  } catch (error) {
+    console.error("Error in getWeeklyReportsCount:", error);
+    return res.json({ success: false, message: "An unexpected error occurred!" });
   }
 };
 
@@ -480,4 +517,5 @@ export {
   getCompanyMentorsController,
   getInternEmployeeCountController,
   getMentorDataDashboardCountsController,
+  getWeeklyReportsCount,
 };
