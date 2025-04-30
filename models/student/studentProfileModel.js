@@ -34,6 +34,11 @@ const profileSchema = new mongoose.Schema(
         month: { type: String },
         weekNo: { type: Number },
         reportUrl: { type: String },
+        status: {
+          type: String,
+          default: 'View',
+          enum: ['View', 'Viewed']
+        },
       },
     ],
     monthly: [

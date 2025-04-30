@@ -534,8 +534,9 @@ const updateProfileController = async (req, res) => {
   }
 };
 
+// studentController
 const updateWeeklyReport = async (req, res) => {
-  const { registrationNumber, weekNo, reportUrl } = req.body;
+  const { registrationNumber, weekNo, reportUrl, status } = req.body;
 
   try {
     // First, find the student to check if a weekly report with that weekNo exists
@@ -557,16 +558,21 @@ const updateWeeklyReport = async (req, res) => {
           message: "Week not found in student's weekly reports",
         });
     }
-    // Update the reportUrl for the matching weekNo
+    
+    // Update the reportUrl and status for the matching weekNo
     const result = await studentProfileModel.updateOne(
       { registrationNumber },
       {
-        $set: { "weekly.$[elem].reportUrl": reportUrl },
+        $set: { 
+          "weekly.$[elem].reportUrl": reportUrl,
+          "weekly.$[elem].status": status || "Viewed" // Default to "Viewed" if status not provided
+        },
       },
       {
         arrayFilters: [{ "elem.weekNo": weekNo }],
       }
     );
+    
     return res
       .status(200)
       .json({ success: true, message: "Weekly report updated" });
