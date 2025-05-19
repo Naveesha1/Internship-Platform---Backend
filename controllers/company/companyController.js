@@ -134,6 +134,25 @@ const updateCvStatusController = async (req, res) => {
   }
 };
 
+const updateHiredController = async (req, res) => {
+  const { id, isHired } = req.body;
+  try {
+    const application = await applyInternshipModel.findById(id);
+
+    if (!application) {
+      return res.json({ success: false, message: "Application not found" });
+    }
+
+    application.isHired = isHired;
+    await application.save();
+
+    return res.json({ success: true, message: "Hire status updated successfully" });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    return res.json({ success: false, message: "Failed to update status" });
+  }
+};
+
 
 // New controller function for CV analysis with targeted extraction
 const analyzeCvController = async (req, res) => {
@@ -455,6 +474,7 @@ export {
   getCompanySpecificInternshipController,
   getApplicantsController,
   updateCvStatusController,
+  updateHiredController,
   analyzeCvController,
   getApplicationCountController,
   getPositionStatsController,
