@@ -44,7 +44,7 @@ mentorRouter.post(
 );
 mentorRouter.post("/getCompanyMentorsController", getCompanyMentorsController);
 mentorRouter.post(
-  "/getInternEmployeeCountController",
+  "/getInternEmployeeCount",
   getInternEmployeeCountController
 );
 mentorRouter.post(

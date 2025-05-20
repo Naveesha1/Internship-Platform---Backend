@@ -104,7 +104,6 @@ const getPositionAndCompany = async (req, res) => {
     }
 
     const companyName = company.companyName;
-console.log(mentorPosition,companyName);
     // 3. Return the combined object
     return res.json({
       success: true,
@@ -483,28 +482,29 @@ const getInternEmployeeCountController = async (req, res) => {
   try {
     const { registeredEmail } = req.body;
 
-    const company = await CompanyModel.findOne({ registeredEmail });
-
+    // Find the company using registered email
+    const company = await companyProfileModel.findOne({ registeredEmail:registeredEmail });
     if (!company) {
-      return res.status(404).json({ success: false, message: "Company not found" });
+      return res.json({ success: false, message: "Company not found" });
     }
 
+    // Extract mentor emails from the company object
     const mentorEmails = company.mentors.map(mentor => mentor.mentorEmail);
 
-    let totalStudentCount = 0;
+    // Fetch mentors using those emails
+    const mentors = await MentorProfileModel.find({ registeredEmail: { $in: mentorEmails } });
 
-    for (const email of mentorEmails) {
-      const mentor = await MentorModel.findOne({ mentorEmail: email });
-      if (mentor && Array.isArray(mentor.students)) {
-        totalStudentCount += mentor.students.length;
-      }
-    }
+    // Get the total number of students under all mentors
+    const allStudents = mentors.flatMap(mentor => mentor.student || []);
+
+    const totalStudentCount = allStudents.length;
 
     return res.json({ success: true, count: totalStudentCount });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.json({ success: false, message: error.message });
   }
 };
+
 
 const getMentorDataDashboardCountsController = async (req, res) => {
   const { registeredEmail } = req.body;
