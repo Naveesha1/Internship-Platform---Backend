@@ -2,6 +2,7 @@ import express from "express";
 import companyProfileModel from "../../models/company/companyProfileModel.js";
 import internshipModel from "../../models/company/internshipModel.js";
 import applyInternshipModel from "../../models/student/applyInternshipModel.js";
+import notificationModel from "../../models/notificationModel.js";
 
 import axios from 'axios';
 import { createRequire } from 'module';
@@ -123,7 +124,24 @@ const updateCvStatusController = async (req, res) => {
     if (!application) {
       return res.json({ success: false, message: "Application not found" });
     }
-
+    // save notification to student
+        if(status){
+        const newNotification = new notificationModel({
+          role:"Student",
+          message:`Your cv has accepted by ${application.companyName}`,
+          userEmail: application.userEmail,
+        });
+        
+        await newNotification.save();
+      } else {
+        const newNotification = new notificationModel({
+          role:"Student",
+          message:`Your cv has rejected by ${application.companyName}`,
+          userEmail: application.userEmail,
+        });
+        
+        await newNotification.save();
+      }
     application.status = status;
     await application.save();
 

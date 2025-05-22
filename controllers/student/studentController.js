@@ -1,6 +1,7 @@
 import studentProfileModel from "../../models/student/studentProfileModel.js";
 import mongoose from "mongoose";
 import internshipModel from "../../models/company/internshipModel.js";
+import notificationModel from "../../models/notificationModel.js";
 
 const studentProfileController = async (req, res) => {
   const {
@@ -297,6 +298,13 @@ const saveWeeklyReportData = async (req, res) => {
   const { registeredEmail, weekNo, reportUrl, month } = req.body;
   try {
     const profile = await studentProfileModel.findOne({ registeredEmail });
+    // send notification to mentor
+    const newNotification = new notificationModel({
+        role:"Mentor",
+        message:`${profile.registrationNumber} has sent weekly report`,
+      });
+    await newNotification.save();
+
     if (profile) {
       const newWeeklyData = {
         month: month,
@@ -319,6 +327,21 @@ const saveMonthlyReportData = async (req, res) => {
   const { universityMail, number, reportUrl, month, duration } = req.body;
   try {
     const profile = await studentProfileModel.findOne({ universityMail });
+    // send notification to admin
+    const newNotification = new notificationModel({
+        role:"Admin",
+        message:`${profile.registrationNumber} has sent monthly report`,
+      });
+    await newNotification.save();
+
+    // send notification to student
+    const newStudentNotification = new notificationModel({
+        role:"Student",
+        message:`${profile.registrationNumber} has sent monthly report`,
+        userEmail: profile.registeredEmail,
+      });
+    await newStudentNotification.save();
+
     if (profile) {
       const newMonthlyData = {
         month: month,
@@ -547,6 +570,12 @@ const updateWeeklyReport = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Student not found" });
     }
+    // send notification to admin
+    const newMentorNotification = new notificationModel({
+        role:"Admin",
+        message:`${student.registrationNumber} has sent weekly report`,
+      });
+    await newMentorNotification.save();
 
     const existingWeek = student.weekly.find((week) => week.weekNo === weekNo);
 

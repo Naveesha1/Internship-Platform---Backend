@@ -4,6 +4,7 @@ import StudentProfileModel from "../../models/student/studentProfileModel.js";
 import bcrypt from "bcrypt";
 import companyProfileModel from "../../models/company/companyProfileModel.js";
 import mentorProfileModel from "../../models/mentor/mentorProfileModel.js";
+import notificationModel from "../../models/notificationModel.js";
 
 const getAdminProfileController = async (req, res) => {
   const { registeredEmail } = req.body;
@@ -148,6 +149,37 @@ const getWeeklyReportsAvailableStudents = async (req, res) => {
   }
 };
 
+const getAllDocumentsController = async (req, res) => {
+  try {
+    // Fetch only the 'monthly' and 'weekly' fields to optimize the query
+    const students = await StudentProfileModel.find({}, { monthly: 1, weekly: 1 });
+
+    let totalMonthlyReports = 0;
+    let totalViewedWeeklyReports = 0;
+
+    students.forEach(student => {
+      if (Array.isArray(student.monthly)) {
+        totalMonthlyReports += student.monthly.length;
+      }
+      if (Array.isArray(student.weekly)) {
+        totalViewedWeeklyReports += student.weekly.filter(report => report.status === 'Viewed').length;
+      }
+    });
+
+    const documents = {
+      monthlyReportCount: totalMonthlyReports,
+      weeklyReportCount: totalViewedWeeklyReports
+    };
+
+    return res.json({ success: true, data: documents });
+  } catch (error) {
+    console.error("Error in getAllDocumentsController:", error);
+    return res.json({ success: false, message: "Error occurred" });
+  }
+};
+
+
+
 const getAllCompaniesController = async (req, res) => {
   try {
     const companies = await companyProfileModel.find();
@@ -170,6 +202,22 @@ const updateIdStatusController = async (req, res) => {
     if (!application) {
       return res.json({ success: false, message: "Application not found" });
     }
+    // save notification to student
+    if(status){
+    const newNotification = new notificationModel({
+      role:"Student",
+      message:`Your profile has verified`,
+      userEmail: application.registeredEmail,
+    });
+    await newNotification.save();
+  } else {
+    const newNotification = new notificationModel({
+      role:"Student",
+      message:`Your profile has Rejected`,
+      userEmail: application.registeredEmail,
+    });
+    await newNotification.save();
+  }
 
     application.verify = status;
     await application.save();
@@ -189,6 +237,24 @@ const updateVerificationStatusController = async (req, res) => {
     if (!company) {
       return res.json({ success: false, message: "Application not found" });
     }
+    // save notification to student
+    if(status){
+    const newNotification = new notificationModel({
+      role:"Company",
+      message:`Your profile has verified`,
+      userEmail: company.registeredEmail,
+    });
+    
+    await newNotification.save();
+  } else {
+    const newNotification = new notificationModel({
+      role:"Company",
+      message:`Your profile has Rejected`,
+      userEmail: company.registeredEmail,
+    });
+    
+    await newNotification.save();
+  }
     company.verify = status;
     await company.save();
 
@@ -614,4 +680,5 @@ export {
   getMonthlyInternshipsByDegree,
   getMonthlyReportsAvailableStudents,
   getWeeklyReportsAvailableStudents,
+  getAllDocumentsController,
 };

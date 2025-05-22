@@ -19,6 +19,7 @@ import {
   getMonthlyInternshipsByDegree,
   getMonthlyReportsAvailableStudents,
   getWeeklyReportsAvailableStudents,
+  getAllDocumentsController,
 } from "../controllers/admin/adminController.js";
 import { getSkillsDemandController } from "../controllers/internshipController.js";
 
@@ -35,6 +36,7 @@ adminRouter.get("/getAllCompanies", getAllCompaniesController);
 adminRouter.put("/updateCompanyStatus", updateVerificationStatusController);
 
 adminRouter.get("/getVerifiedCompanies", getVerifiedCompaniesCountController);
+adminRouter.get("/getAllDocuments", getAllDocumentsController);
 adminRouter.get("/getPendingCompanies", getPendingCompaniesCountController);
 adminRouter.get("/getVerifiedStudents", getVerifiedStudentsCountController);
 adminRouter.get("/getPendingStudents", getPendingStudentsCountController);
