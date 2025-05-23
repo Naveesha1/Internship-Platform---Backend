@@ -1,4 +1,5 @@
 import express from "express";
+import { authMiddleware } from "../middleware/auth.js";
 import {
   studentProfileController,
   getProfileController,
@@ -34,7 +35,7 @@ import {
 const studentRouter = express.Router();
 
 studentRouter.post("/profile", studentProfileController);
-studentRouter.post("/getprofile", getProfileController);
+studentRouter.post("/getProfile", authMiddleware, getProfileController);
 studentRouter.get("/allInternships", getAllInternshipController);
 studentRouter.post("/getMatchingInternshipsController",getMatchingInternshipsController);
 studentRouter.post("/getCvDetails", getCvDetailsController);
