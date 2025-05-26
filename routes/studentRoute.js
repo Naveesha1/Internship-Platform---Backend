@@ -21,6 +21,7 @@ import {
   getMonthlyReports,
   deleteMonthlyReport,
   updateWeeklyReport,
+  checkProfileVerification,
 } from "../controllers/student/studentController.js";
 import {
   applyInternshipController,
@@ -56,12 +57,13 @@ studentRouter.post("/getWeeklyReports", getWeeklyReports);
 studentRouter.delete("/deleteWeeklyReport", deleteWeeklyReport);
 studentRouter.post("/getStudentProfileById",getStudentProfileById);
 studentRouter.post("/getResponseCompaniesController",getResponseCompaniesController);
-studentRouter.post("/respinseCompaniesRejectOrAccept",getSeparateResponseCountsController);
+studentRouter.post("/responseCompaniesRejectOrAccept",getSeparateResponseCountsController);
 studentRouter.put("/updateStudentProfile",updateProfileController);
 studentRouter.post("/saveMonthlyReportStudent",saveMonthlyReportData);
 studentRouter.post("/getMonthlyReports",getMonthlyReports);
 studentRouter.delete("/deleteMonthlyReport",deleteMonthlyReport);
 studentRouter.post("/updateWeeklyReport",updateWeeklyReport);
+studentRouter.post("/checkProfileVerification",checkProfileVerification);
 
 
 export default studentRouter;

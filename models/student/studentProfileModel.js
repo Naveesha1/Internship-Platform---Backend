@@ -14,7 +14,7 @@ const profileSchema = new mongoose.Schema(
     skills: [{ type: String, required: true }],
     position: [{ type: String, required: true }],
     qualification: [{ type: String }],
-    verify: { type: Boolean, default: null },
+    verify: { type: Boolean, default: false },
     registeredEmail: { type: String, required: true },
     address:{type:String, required: true},
     date: {

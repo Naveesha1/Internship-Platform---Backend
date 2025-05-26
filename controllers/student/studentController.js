@@ -18,14 +18,12 @@ const studentProfileController = async (req, res) => {
     position,
     qualification,
     cv,
-    verify,
     userEmail,
     address,
     certifications,
     cvName,
     cvPosition,
   } = req.body;
-
   try {
     const student = await studentProfileModel.findOne({ universityMail });
     if (student) {
@@ -65,7 +63,6 @@ const studentProfileController = async (req, res) => {
         skills: skillsArray,
         position: positionArray,
         qualification: qualificationArray,
-        verify: verify,
         registeredEmail: userEmail,
         certifications: certificationArray,
         cvData: validCvDetails,
@@ -112,6 +109,31 @@ const getCvDetailsController = async (req, res) => {
     return res.json({ success: false, message: "An error occured during" });
   }
 };
+
+const checkProfileVerification = async (req, res) => {
+  const { registeredEmail } = req.body;  
+  try {
+    const profile = await studentProfileModel.findOne({ registeredEmail });
+    
+    if (!profile) {
+      return res.json({ 
+        success: false, 
+        isVerified: false 
+      });
+    }
+    
+    return res.json({ 
+      success: true, 
+      isVerified: profile.verify === true,
+    });
+    
+  } catch (error) {
+    return res.json({ 
+      success: false, 
+      isVerified: false 
+    });  
+  }
+}
 
 const addNewCvDetailsController = async (req, res) => {
   const { title, cvUrl, fileName, registeredEmail } = req.body;
@@ -267,7 +289,6 @@ const getGpaDistribution = async (req, res) => {
 
     res.json({ success: true, data: gpaDistribution });
   } catch (error) {
-    console.error("Error fetching GPA distribution:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching GPA distribution data",
@@ -300,9 +321,9 @@ const saveWeeklyReportData = async (req, res) => {
     const profile = await studentProfileModel.findOne({ registeredEmail });
     // send notification to mentor
     const newNotification = new notificationModel({
-        role:"Mentor",
-        message:`${profile.registrationNumber} has sent weekly report`,
-      });
+      role: "Mentor",
+      message: `${profile.registrationNumber} has sent weekly report`,
+    });
     await newNotification.save();
 
     if (profile) {
@@ -329,17 +350,17 @@ const saveMonthlyReportData = async (req, res) => {
     const profile = await studentProfileModel.findOne({ universityMail });
     // send notification to admin
     const newNotification = new notificationModel({
-        role:"Admin",
-        message:`${profile.registrationNumber} has sent monthly report`,
-      });
+      role: "Admin",
+      message: `${profile.registrationNumber} has sent monthly report`,
+    });
     await newNotification.save();
 
     // send notification to student
     const newStudentNotification = new notificationModel({
-        role:"Student",
-        message:`${profile.registrationNumber} has sent monthly report`,
-        userEmail: profile.registeredEmail,
-      });
+      role: "Student",
+      message: `${profile.registrationNumber} has sent monthly report`,
+      userEmail: profile.registeredEmail,
+    });
     await newStudentNotification.save();
 
     if (profile) {
@@ -467,7 +488,6 @@ const getStudentProfileById = async (req, res) => {
         .json({ success: false, message: "Student not found" });
     }
   } catch (error) {
-    console.error("Error fetching student profile:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -548,7 +568,6 @@ const updateProfileController = async (req, res) => {
       data: updatedProfile,
     });
   } catch (error) {
-    console.error("Error updating profile:", error);
     return res.status(500).json({
       success: false,
       message: "An error occurred while updating profile",
@@ -572,41 +591,38 @@ const updateWeeklyReport = async (req, res) => {
     }
     // send notification to admin
     const newMentorNotification = new notificationModel({
-        role:"Admin",
-        message:`${student.registrationNumber} has sent weekly report`,
-      });
+      role: "Admin",
+      message: `${student.registrationNumber} has sent weekly report`,
+    });
     await newMentorNotification.save();
 
     const existingWeek = student.weekly.find((week) => week.weekNo === weekNo);
 
     if (!existingWeek) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Week not found in student's weekly reports",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Week not found in student's weekly reports",
+      });
     }
-    
+
     // Update the reportUrl and status for the matching weekNo
     const result = await studentProfileModel.updateOne(
       { registrationNumber },
       {
-        $set: { 
+        $set: {
           "weekly.$[elem].reportUrl": reportUrl,
-          "weekly.$[elem].status": status || "Viewed" // Default to "Viewed" if status not provided
+          "weekly.$[elem].status": status || "Viewed", // Default to "Viewed" if status not provided
         },
       },
       {
         arrayFilters: [{ "elem.weekNo": weekNo }],
       }
     );
-    
+
     return res
       .status(200)
       .json({ success: true, message: "Weekly report updated" });
   } catch (error) {
-    console.error(error);
     return res
       .status(500)
       .json({ success: false, message: "An unexpected error occurred!" });
@@ -634,4 +650,5 @@ export {
   getMonthlyReports,
   deleteMonthlyReport,
   updateWeeklyReport,
+  checkProfileVerification,
 };
