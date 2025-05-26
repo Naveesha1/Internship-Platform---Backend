@@ -18,7 +18,7 @@ const createInternshipController = async (req, res) => {
   } = req.body;
 
   try {
-    const currentDate = new Date().toISOString().split("T")[0];
+    const currentDate = new Date().toISOString();
     const companyProfile = await companyProfileModel.findOne({
       registeredEmail,
     });

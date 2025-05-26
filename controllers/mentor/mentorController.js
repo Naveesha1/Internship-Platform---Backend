@@ -4,6 +4,7 @@ import UserModel from "../../models/userModel.js";
 import CompanyModel from "../../models/company/companyProfileModel.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import companyProfileModel from "../../models/company/companyProfileModel.js";
 
 const createNewMentorController = async (req, res) => {
   const { name, position, email, password, registeredEmail } = req.body;
@@ -79,6 +80,45 @@ const createMentorProfileController = async (req, res) => {
   }
 };
 
+const getPositionAndCompany = async (req, res) => {
+  const { registeredEmail } = req.body;
+
+  try {
+    // 1. Find mentor profile to get position
+    const profile = await UserModel.findOne({ email: registeredEmail });
+    if (!profile) {
+      return res.json({ success: false, message: "Mentor profile not found." });
+    }
+
+    const mentorPosition = profile.position;
+
+    // 2. Find company where this mentor email exists in the mentors array
+    const company = await companyProfileModel.findOne({
+      mentors: {
+        $elemMatch: { mentorEmail: registeredEmail },
+      },
+    });
+
+    if (!company) {
+      return res.json({ success: false, message: "Company not found for this mentor." });
+    }
+
+    const companyName = company.companyName;
+    // 3. Return the combined object
+    return res.json({
+      success: true,
+      data: {
+        position: mentorPosition,
+        companyName: companyName,
+      },
+    });
+  } catch (error) {
+    console.error("Error in getPositionAndCompany:", error);
+    return res.json({ success: false, message: "An error occurred!", error });
+  }
+};
+
+
 const getMentorProfileController = async (req, res) => {
   const { registeredEmail } = req.body;
   try {
@@ -125,6 +165,39 @@ const deleteMentorController = async (req, res) => {
     return res.json({ success: false, message: "An error occurred!" });
   }
 };
+
+// Remove Student from Mentor 
+const removeStudentFromMentorController = async (req, res) => {
+  const { email, registeredEmail } = req.body; // email = student email to remove
+
+  try {
+    const mentor = await MentorProfileModel.findOne({ registeredEmail });
+
+    if (!mentor) {
+      return res.json({ success: false, message: "Mentor does not completed their profile!" });
+    }
+
+    // Filter out the student whose email matches
+    const originalLength = mentor.student.length;
+    mentor.student = mentor.student.filter(student => student.email !== email);
+
+    // Save only if a student was removed
+    if (mentor.student.length === originalLength) {
+      return res.json({ success: false, message: "Student not found in mentor profile!" });
+    }
+
+    await mentor.save();
+
+    return res.json({
+      success: true,
+      message: "Student removed successfully!",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.json({ success: false, message: "An error occurred!" });
+  }
+};
+
 
 // Get Company Mentors Controller
 const getCompanyMentorsController = async (req, res) => {
@@ -241,7 +314,6 @@ const deleteMonthlyReport = async (req, res) => {
 // Add a student to mentor's profile
 const addStudentToMentor = async (req, res) => {
   const { registeredEmail, student } = req.body;
-
   try {
     const mentor = await MentorProfileModel.findOne({ registeredEmail });
 
@@ -278,7 +350,6 @@ const getStudents = async (req, res) => {
 
   try {
     const mentor = await MentorProfileModel.findOne({ registeredEmail });
-
     if (!mentor) {
       return res.json({
         success: false,
@@ -411,28 +482,29 @@ const getInternEmployeeCountController = async (req, res) => {
   try {
     const { registeredEmail } = req.body;
 
-    const company = await CompanyModel.findOne({ registeredEmail });
-
+    // Find the company using registered email
+    const company = await companyProfileModel.findOne({ registeredEmail:registeredEmail });
     if (!company) {
-      return res.status(404).json({ success: false, message: "Company not found" });
+      return res.json({ success: false, message: "Company not found" });
     }
 
+    // Extract mentor emails from the company object
     const mentorEmails = company.mentors.map(mentor => mentor.mentorEmail);
 
-    let totalStudentCount = 0;
+    // Fetch mentors using those emails
+    const mentors = await MentorProfileModel.find({ registeredEmail: { $in: mentorEmails } });
 
-    for (const email of mentorEmails) {
-      const mentor = await MentorModel.findOne({ mentorEmail: email });
-      if (mentor && Array.isArray(mentor.students)) {
-        totalStudentCount += mentor.students.length;
-      }
-    }
+    // Get the total number of students under all mentors
+    const allStudents = mentors.flatMap(mentor => mentor.student || []);
+
+    const totalStudentCount = allStudents.length;
 
     return res.json({ success: true, count: totalStudentCount });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.json({ success: false, message: error.message });
   }
 };
+
 
 const getMentorDataDashboardCountsController = async (req, res) => {
   const { registeredEmail } = req.body;
@@ -517,4 +589,6 @@ export {
   getInternEmployeeCountController,
   getMentorDataDashboardCountsController,
   getWeeklyReportsCount,
+  removeStudentFromMentorController,
+  getPositionAndCompany,
 };

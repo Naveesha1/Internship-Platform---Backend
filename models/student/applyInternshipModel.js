@@ -11,6 +11,7 @@ const applicationSchema = new mongoose.Schema({
   companyRegisteredEmail: { type: String },
   internshipId: { type: String },
   status: { type: Boolean, default: null },
+  isHired: { type: Boolean, default: null },
   date: { type: String, default: () => new Date().toISOString().split("T")[0] },
 });
 

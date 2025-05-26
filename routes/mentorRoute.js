@@ -17,6 +17,8 @@ import {
   getInternEmployeeCountController,
   getMentorDataDashboardCountsController,
   getWeeklyReportsCount,
+  removeStudentFromMentorController,
+  getPositionAndCompany,
 } from "../controllers/mentor/mentorController.js";
 
 const mentorRouter = express.Router();
@@ -33,11 +35,22 @@ mentorRouter.post("/saveStudentData", addStudentToMentor);
 mentorRouter.post("/getAllStudent", getStudents);
 mentorRouter.get("/getReportStaus", getReportStatistics);
 mentorRouter.post("/getWeeklyReports", getWeeklyReports);
+mentorRouter.post("/removeStudent", removeStudentFromMentorController);
+mentorRouter.post("/getCompanyAndPosition", getPositionAndCompany);
 
-mentorRouter.post("/getMentorCountByCompanyController",getMentorCountByCompanyController)
-mentorRouter.post("/getCompanyMentorsController",getCompanyMentorsController);
-mentorRouter.post("/getInternEmployeeCountController",getInternEmployeeCountController)
-mentorRouter.post("/countStudentWeeklyMonthly",getMentorDataDashboardCountsController);
-mentorRouter.post("/getWeeklyReportsCount",getWeeklyReportsCount);
+mentorRouter.post(
+  "/getMentorCountByCompanyController",
+  getMentorCountByCompanyController
+);
+mentorRouter.post("/getCompanyMentorsController", getCompanyMentorsController);
+mentorRouter.post(
+  "/getInternEmployeeCount",
+  getInternEmployeeCountController
+);
+mentorRouter.post(
+  "/countStudentWeeklyMonthly",
+  getMentorDataDashboardCountsController
+);
+mentorRouter.post("/getWeeklyReportsCount", getWeeklyReportsCount);
 
 export default mentorRouter;

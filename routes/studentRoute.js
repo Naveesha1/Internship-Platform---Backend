@@ -1,4 +1,5 @@
 import express from "express";
+import { authMiddleware } from "../middleware/auth.js";
 import {
   studentProfileController,
   getProfileController,
@@ -20,6 +21,7 @@ import {
   getMonthlyReports,
   deleteMonthlyReport,
   updateWeeklyReport,
+  checkProfileVerification,
 } from "../controllers/student/studentController.js";
 import {
   applyInternshipController,
@@ -34,7 +36,7 @@ import {
 const studentRouter = express.Router();
 
 studentRouter.post("/profile", studentProfileController);
-studentRouter.post("/getprofile", getProfileController);
+studentRouter.post("/getProfile", authMiddleware, getProfileController);
 studentRouter.get("/allInternships", getAllInternshipController);
 studentRouter.post("/getMatchingInternshipsController",getMatchingInternshipsController);
 studentRouter.post("/getCvDetails", getCvDetailsController);
@@ -55,12 +57,13 @@ studentRouter.post("/getWeeklyReports", getWeeklyReports);
 studentRouter.delete("/deleteWeeklyReport", deleteWeeklyReport);
 studentRouter.post("/getStudentProfileById",getStudentProfileById);
 studentRouter.post("/getResponseCompaniesController",getResponseCompaniesController);
-studentRouter.post("/respinseCompaniesRejectOrAccept",getSeparateResponseCountsController);
+studentRouter.post("/responseCompaniesRejectOrAccept",getSeparateResponseCountsController);
 studentRouter.put("/updateStudentProfile",updateProfileController);
 studentRouter.post("/saveMonthlyReportStudent",saveMonthlyReportData);
 studentRouter.post("/getMonthlyReports",getMonthlyReports);
 studentRouter.delete("/deleteMonthlyReport",deleteMonthlyReport);
 studentRouter.post("/updateWeeklyReport",updateWeeklyReport);
+studentRouter.post("/checkProfileVerification",checkProfileVerification);
 
 
 export default studentRouter;

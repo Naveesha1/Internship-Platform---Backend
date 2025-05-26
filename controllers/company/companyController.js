@@ -2,13 +2,12 @@ import express from "express";
 import companyProfileModel from "../../models/company/companyProfileModel.js";
 import internshipModel from "../../models/company/internshipModel.js";
 import applyInternshipModel from "../../models/student/applyInternshipModel.js";
+import notificationModel from "../../models/notificationModel.js";
 
-import axios from 'axios';
-import { createRequire } from 'module';
+import axios from "axios";
+import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
-
-
+const pdfParse = require("pdf-parse");
 
 // Profile setting up controller
 const companyProfileController = async (req, res) => {
@@ -123,7 +122,24 @@ const updateCvStatusController = async (req, res) => {
     if (!application) {
       return res.json({ success: false, message: "Application not found" });
     }
+    // save notification to student
+    if (status) {
+      const newNotification = new notificationModel({
+        role: "Student",
+        message: `Your cv has accepted by ${application.companyName}`,
+        userEmail: application.userEmail,
+      });
 
+      await newNotification.save();
+    } else {
+      const newNotification = new notificationModel({
+        role: "Student",
+        message: `Your cv has rejected by ${application.companyName}`,
+        userEmail: application.userEmail,
+      });
+
+      await newNotification.save();
+    }
     application.status = status;
     await application.save();
 
@@ -134,56 +150,80 @@ const updateCvStatusController = async (req, res) => {
   }
 };
 
+const updateHiredController = async (req, res) => {
+  const { id, isHired } = req.body;
+  try {
+    const application = await applyInternshipModel.findById(id);
+
+    if (!application) {
+      return res.json({ success: false, message: "Application not found" });
+    }
+
+    application.isHired = isHired;
+    await application.save();
+
+    return res.json({
+      success: true,
+      message: "Hire status updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    return res.json({ success: false, message: "Failed to update status" });
+  }
+};
 
 // New controller function for CV analysis with targeted extraction
 const analyzeCvController = async (req, res) => {
   try {
     const { cvUrl, internshipId } = req.body;
-    
+
     if (!cvUrl || !internshipId) {
       return res.status(400).json({
         success: false,
-        message: "CV URL and internship ID are required"
+        message: "CV URL and internship ID are required",
       });
     }
-    
+
     // Fetch internship details to get requirements, responsibilities, and keywords
     const internship = await internshipModel.findById(internshipId);
     if (!internship) {
       return res.status(404).json({
         success: false,
-        message: "Internship not found"
+        message: "Internship not found",
       });
     }
-    
+
     // Extract text from the CV PDF
     const cvText = await extractTextFromPdf(cvUrl);
     if (!cvText) {
       return res.status(500).json({
         success: false,
-        message: "Failed to extract text from CV"
+        message: "Failed to extract text from CV",
       });
     }
-    
+
     // Extract just the skills and projects sections from the CV
     const { technicalSkills, projects } = extractRelevantSections(cvText);
-    
+
     // Calculate match score based on requirements, responsibilities, and keywords
     // compared against just the skills and projects
-    const matchResult = calculateMatchScore(technicalSkills, projects, internship);
-    
+    const matchResult = calculateMatchScore(
+      technicalSkills,
+      projects,
+      internship
+    );
+
     return res.json({
       success: true,
       matchScore: matchResult.score,
-      matchedKeywords: matchResult.matchedKeywords
+      matchedKeywords: matchResult.matchedKeywords,
     });
-    
   } catch (error) {
     console.error("Error in analyzeCv controller:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -191,33 +231,32 @@ const analyzeCvController = async (req, res) => {
 // Function to extract text from PDF using pdf-parse
 async function extractTextFromPdf(cvUrl) {
   try {
-    
     // Force no cache and proper headers for Firebase
     const response = await axios({
-      method: 'GET',
+      method: "GET",
       url: cvUrl,
-      responseType: 'arraybuffer',
+      responseType: "arraybuffer",
       headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      }
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
     });
-        
+
     // Parse the PDF
     const buffer = Buffer.from(response.data);
-    
+
     // Basic options for pdf-parse
     const options = {
-      max: 10 // Only process first 10 pages for speed
+      max: 10, // Only process first 10 pages for speed
     };
-    
+
     const data = await pdfParse(buffer, options);
-    
+
     return data.text;
   } catch (error) {
     console.error("PDF extraction error:", error.message);
-    
+
     // Detailed error logging
     if (error.response) {
       console.error(`Status: ${error.response.status}`);
@@ -227,36 +266,36 @@ async function extractTextFromPdf(cvUrl) {
     } else {
       console.error("Error setting up request:", error.message);
     }
-    
+
     return null;
   }
 }
 
 // Function to extract Technical Skills and Projects sections from CV text
 function extractRelevantSections(cvText) {
-  const lines = cvText.split('\n');
-  let technicalSkills = '';
-  let projects = '';
-  
+  const lines = cvText.split("\n");
+  let technicalSkills = "";
+  let projects = "";
+
   let currentSection = null;
-  
+
   // Common section header patterns
   const skillSectionPatterns = [
     /technical skills/i,
     /skills/i,
     /technical expertise/i,
     /core competencies/i,
-    /technologies/i
+    /technologies/i,
   ];
-  
+
   const projectSectionPatterns = [
     /projects/i,
     /project experience/i,
     /academic projects/i,
     /personal projects/i,
-    /portfolio/i
+    /portfolio/i,
   ];
-  
+
   // Other common section headers to detect section boundaries
   const otherSectionPatterns = [
     /education/i,
@@ -271,98 +310,107 @@ function extractRelevantSections(cvText) {
     /contact/i,
     /about me/i,
     /summary/i,
-    /objective/i
+    /objective/i,
   ];
-  
+
   // Process each line to identify sections and collect content
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    
+
     // Skip empty lines
     if (!line) continue;
-    
+
     // Check if this line is a skills section header
-    const isSkillsHeader = skillSectionPatterns.some(pattern => pattern.test(line));
+    const isSkillsHeader = skillSectionPatterns.some((pattern) =>
+      pattern.test(line)
+    );
     if (isSkillsHeader) {
-      currentSection = 'skills';
+      currentSection = "skills";
       continue;
     }
-    
+
     // Check if this line is a projects section header
-    const isProjectsHeader = projectSectionPatterns.some(pattern => pattern.test(line));
+    const isProjectsHeader = projectSectionPatterns.some((pattern) =>
+      pattern.test(line)
+    );
     if (isProjectsHeader) {
-      currentSection = 'projects';
+      currentSection = "projects";
       continue;
     }
-    
+
     // Check if this line is another section header, signaling the end of our current section
-    const isOtherHeader = otherSectionPatterns.some(pattern => pattern.test(line));
+    const isOtherHeader = otherSectionPatterns.some((pattern) =>
+      pattern.test(line)
+    );
     if (isOtherHeader) {
       currentSection = null;
       continue;
     }
-    
+
     // Collect content based on current section
-    if (currentSection === 'skills') {
-      technicalSkills += line + ' ';
-    } else if (currentSection === 'projects') {
-      projects += line + ' ';
+    if (currentSection === "skills") {
+      technicalSkills += line + " ";
+    } else if (currentSection === "projects") {
+      projects += line + " ";
     }
   }
-  
+
   return {
     technicalSkills: technicalSkills.trim(),
-    projects: projects.trim()
+    projects: projects.trim(),
   };
 }
 
 // Function to calculate the match score based on just skills and projects
 function calculateMatchScore(technicalSkills, projects, internship) {
   // Combine skills and projects for matching
-  const relevantCvContent = (technicalSkills + ' ' + projects).toLowerCase();
-  
+  const relevantCvContent = (technicalSkills + " " + projects).toLowerCase();
+
   // Combine all internship criteria into a single array for matching
   const criteriaToMatch = [];
-  
+
   // Process requirements
   if (internship.requirements && Array.isArray(internship.requirements)) {
-    internship.requirements.forEach(req => {
+    internship.requirements.forEach((req) => {
       criteriaToMatch.push({
         text: req,
-        type: 'Requirement',
-        weight: 1
+        type: "Requirement",
+        weight: 1,
       });
     });
   }
-  
+
   // Process responsibilities
-  if (internship.responsibilities && Array.isArray(internship.responsibilities)) {
-    internship.responsibilities.forEach(resp => {
+  if (
+    internship.responsibilities &&
+    Array.isArray(internship.responsibilities)
+  ) {
+    internship.responsibilities.forEach((resp) => {
       criteriaToMatch.push({
         text: resp,
-        type: 'Responsibility',
-        weight: 1
+        type: "Responsibility",
+        weight: 1,
       });
     });
   }
-  
+
   // Process keywords (giving them additional weight)
   if (internship.keywords && Array.isArray(internship.keywords)) {
-    internship.keywords.forEach(keyword => {
+    internship.keywords.forEach((keyword) => {
       criteriaToMatch.push({
         text: keyword,
-        type: 'Keyword',
-        weight: 2  // Keywords have double weight
+        type: "Keyword",
+        weight: 2, // Keywords have double weight
       });
     });
   }
-  
+
   // Calculate matches
   let totalWeightedItems = 0;
   let totalMatches = 0;
   let matchedKeywords = [];
-  
-  criteriaToMatch.forEach(criteria => {
+
+  criteriaToMatch.forEach((criteria) => {
     const criteriaLower = criteria.text.toLowerCase();
     if (relevantCvContent.includes(criteriaLower)) {
       totalMatches += criteria.weight;
@@ -370,19 +418,17 @@ function calculateMatchScore(technicalSkills, projects, internship) {
     }
     totalWeightedItems += criteria.weight;
   });
-  
+
   // Calculate percentage match
   // Avoid division by zero
-  const percentage = totalWeightedItems > 0 ? (totalMatches / totalWeightedItems) * 100 : 0;
-  
+  const percentage =
+    totalWeightedItems > 0 ? (totalMatches / totalWeightedItems) * 100 : 0;
+
   return {
     score: Math.round(percentage * 10) / 10, // Round to 1 decimal place
-    matchedKeywords
+    matchedKeywords,
   };
 }
-
-
-
 
 const getApplicationCountController = async (req, res) => {
   const { registeredEmail } = req.body;
@@ -394,30 +440,32 @@ const getApplicationCountController = async (req, res) => {
 
     return res.json({ success: true, count: applicationCount });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "An error occurred" });
+    return res
+      .status(500)
+      .json({ success: false, message: "An error occurred" });
   }
 };
 
 const getPositionStatsController = async (req, res) => {
   const { registeredEmail } = req.body;
-  
+
   try {
     // Get all applications for this company
     const applications = await applyInternshipModel.find({
       companyRegisteredEmail: registeredEmail,
     });
-    
+
     if (!applications || applications.length === 0) {
-      return res.json({ 
-        success: true, 
-        positionStats: [] 
+      return res.json({
+        success: true,
+        positionStats: [],
       });
     }
-    
+
     // Count applications by position
     const positionCounts = {};
-    
-    applications.forEach(application => {
+
+    applications.forEach((application) => {
       const position = application.position;
       if (positionCounts[position]) {
         positionCounts[position]++;
@@ -425,26 +473,25 @@ const getPositionStatsController = async (req, res) => {
         positionCounts[position] = 1;
       }
     });
-    
+
     // Convert to array format for the chart
-    const positionStats = Object.keys(positionCounts).map(position => ({
+    const positionStats = Object.keys(positionCounts).map((position) => ({
       position: position,
-      count: positionCounts[position]
+      count: positionCounts[position],
     }));
-    
+
     // Sort by count (optional)
     positionStats.sort((a, b) => b.count - a.count);
-    
+
     return res.json({
       success: true,
-      positionStats
+      positionStats,
     });
-    
   } catch (error) {
     console.error("Error in getPositionStatsController:", error);
-    return res.json({ 
-      success: false, 
-      message: "An error occurred while fetching position statistics" 
+    return res.json({
+      success: false,
+      message: "An error occurred while fetching position statistics",
     });
   }
 };
@@ -455,6 +502,7 @@ export {
   getCompanySpecificInternshipController,
   getApplicantsController,
   updateCvStatusController,
+  updateHiredController,
   analyzeCvController,
   getApplicationCountController,
   getPositionStatsController,
