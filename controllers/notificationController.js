@@ -155,8 +155,6 @@ const getMentorNotificationsController = async (req, res) => {
 
 const getNotificationsController = async (req, res) => {
   const { role, registeredEmail } = req.body;
-  console.log("Hey this is student");
-
   try {
     const calendarData = await calenderModel.findOne({
       userEmail: registeredEmail,
@@ -174,7 +172,6 @@ const getNotificationsController = async (req, res) => {
 
         const diffTime = eventDate - today;
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        console.log("hey this is event date", diffDays);
 
         let reminderMessage = null;
 
