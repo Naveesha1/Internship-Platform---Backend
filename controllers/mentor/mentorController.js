@@ -314,35 +314,55 @@ const deleteMonthlyReport = async (req, res) => {
 // Add a student to mentor's profile
 const addStudentToMentor = async (req, res) => {
   const { registeredEmail, student } = req.body;
-  try {
-    const mentor = await MentorProfileModel.findOne({ registeredEmail });
 
+  try {
+    // Find current mentor
+    const mentor = await MentorProfileModel.findOne({ registeredEmail });
     if (!mentor) {
       return res.json({ success: false, message: "Mentor not found" });
     }
 
-    // Check if student with the same registration number already exists
-    const isDuplicate = mentor.student.some(
+    // Check if the student already exists under the current mentor
+    const isDuplicateInCurrentMentor = mentor.student.some(
       (existingStudent) =>
         existingStudent.registrationNumber === student.registrationNumber
     );
 
-    if (isDuplicate) {
+    if (isDuplicateInCurrentMentor) {
       return res.json({
         success: false,
-        message: "Student with this registration number already exists",
+        message: "Student with this registration number already exists under this mentor",
       });
     }
 
-    // Add student to the array
+    // Get all other mentors (excluding the current one)
+    const otherMentors = await MentorProfileModel.find({
+      registeredEmail: { $ne: registeredEmail }
+    });
+
+    // Check if the student is already assigned to another mentor
+    const isAssignedToAnotherMentor = otherMentors.some(otherMentor =>
+      otherMentor.student.some(s => s.registrationNumber === student.registrationNumber)
+    );
+
+    if (isAssignedToAnotherMentor) {
+      return res.json({
+        success: false,
+        message: "This student is already assigned to another mentor",
+      });
+    }
+
     mentor.student.push(student);
     await mentor.save();
 
     return res.json({ success: true, message: "Student added successfully!" });
+
   } catch (error) {
+    console.error(error);
     return res.json({ success: false, message: "Failed to add student" });
   }
 };
+
 
 // Get all students assigned to a mentor
 const getStudents = async (req, res) => {
