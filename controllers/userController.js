@@ -5,6 +5,8 @@ import validator from "validator";
 import createToken from "../config/createToken.js";
 import { sendForgotPasswordEmail } from "../config/sendEmails.js";
 import notificationModel from "../models/notificationModel.js";
+import studentProfileModel from "../models/student/studentProfileModel.js";
+import companyProfileModel from "../models/company/companyProfileModel.js";
 
 //login user
 const loginUser = async (req, res) => {
@@ -82,7 +84,7 @@ const registerUser = async (req, res) => {
 };
 
 // forgot password controller
-const forgotpasswordController = async (req, res) => {
+const forgotPasswordController = async (req, res) => {
   const { email } = req.body;
 
   try {
@@ -182,9 +184,33 @@ const resetPasswordController = async (req, res) => {
   }
 };
 
+const getProfileImage = async(req,res) => {
+  const {decodedEmail} = req.body;
+  try {
+    const user = await userModel.findOne({email:decodedEmail});
+    if(user.role === "Student"){
+      const student = await studentProfileModel.findOne({registeredEmail:decodedEmail})
+      if(student) {
+        return res.json({success:true, url:student.profileImageUrl});
+      }
+    } else if(user.role === "Company" ){
+      const company = await companyProfileModel.findOne({registeredEmail:decodedEmail})
+      if(company){
+        return res.json({success:true, url:company.companyLogo});
+      }
+    }
+    else {
+      return res.json({success:false});
+    }
+  } catch (error) {
+    return res.json({success:false, message:"An error occurred",error})
+  }
+}
+
 export {
   loginUser,
   registerUser,
-  forgotpasswordController,
+  forgotPasswordController,
   resetPasswordController,
+  getProfileImage,
 };
