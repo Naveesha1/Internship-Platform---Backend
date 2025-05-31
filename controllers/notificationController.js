@@ -87,25 +87,23 @@ const getAdminNotificationController = async (req, res) => {
   }
 };
 
-const getMentorNotificationsController = async (req, res) => {
+const getMentorNotificationsController = async (req, res) => { 
   const { mentor, registeredEmail } = req.body;
   try {
     const calendarData = await calenderModel.findOne({
       userEmail: registeredEmail,
     });
-
-    // Prepare today's date in YYYY-MM-DD format
+  
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split("T")[0];
 
     let reminderMessage = null;
-
+    
     if (calendarData && calendarData.events.length > 0) {
       for (const event of calendarData.events) {
-        const eventDateStr = event.date; // already in 'YYYY-MM-DD'
+        const eventDateStr = event.date;
 
-        // Parse event date and calculate difference in days
         const eventDate = new Date(eventDateStr);
         eventDate.setHours(0, 0, 0, 0);
 
@@ -130,6 +128,7 @@ const getMentorNotificationsController = async (req, res) => {
         if (!existing) {
           const newNotification = new notificationModel({
             role: "Mentor",
+            userEmail: registeredEmail,
             message: reminderMessage,
             isRead: false,
           });
@@ -138,7 +137,7 @@ const getMentorNotificationsController = async (req, res) => {
       }
     }
 
-    const notifications = await notificationModel.find({ role: mentor });
+    const notifications = await notificationModel.find({ userEmail: registeredEmail, role:mentor });
     if (notifications.length > 0) {
       return res.json({ success: true, data: notifications });
     } else {
