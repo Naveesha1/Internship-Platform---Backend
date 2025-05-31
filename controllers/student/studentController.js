@@ -2,6 +2,7 @@ import studentProfileModel from "../../models/student/studentProfileModel.js";
 import mongoose from "mongoose";
 import internshipModel from "../../models/company/internshipModel.js";
 import notificationModel from "../../models/notificationModel.js";
+import mentorProfileModel from "../../models/mentor/mentorProfileModel.js";
 
 const studentProfileController = async (req, res) => {
   const {
@@ -319,14 +320,28 @@ const saveWeeklyReportData = async (req, res) => {
   const { registeredEmail, weekNo, reportUrl, month } = req.body;
   try {
     const profile = await studentProfileModel.findOne({ registeredEmail });
+    if(profile) {
+      const registrationNumber = profile.registrationNumber;
+      const mentor = await mentorProfileModel.findOne({
+        student: {
+          $elemMatch: { registrationNumber: registrationNumber }
+        }
+      });
+      if (!mentor) {
+      return res.json({
+        success: false,
+        message: "Mentor not found for this student",
+      });
+    }
+    const mentorEmail = mentor.registeredEmail;
     // send notification to mentor
     const newNotification = new notificationModel({
       role: "Mentor",
+      userEmail: mentorEmail,
       message: `${profile.registrationNumber} has sent weekly report`,
     });
     await newNotification.save();
 
-    if (profile) {
       const newWeeklyData = {
         month: month,
         weekNo: weekNo,
