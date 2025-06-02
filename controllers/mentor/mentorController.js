@@ -319,7 +319,7 @@ const addStudentToMentor = async (req, res) => {
     // Find current mentor
     const mentor = await MentorProfileModel.findOne({ registeredEmail });
     if (!mentor) {
-      return res.json({ success: false, message: "Mentor not found" });
+      return res.json({ success: false, message: "Mentor does not complete their profile!" });
     }
 
     // Check if the student already exists under the current mentor
@@ -487,14 +487,14 @@ const getMentorCountByCompanyController = async (req, res) => {
     const company = await CompanyModel.findOne({ registeredEmail });
 
     if (!company) {
-      return res.status(404).json({ success: false, message: "Company not found" });
+      return res.json({ success: false, message: "Company not found" });
     }
 
     const mentorCount = company.mentors.length;
 
     return res.json({ success: true, count: mentorCount });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.json({ success: false, message: error.message });
   }
 };
 

@@ -122,11 +122,14 @@ const checkProfileVerification = async (req, res) => {
         isVerified: false 
       });
     }
-    
+    if(profile.verify){
     return res.json({ 
       success: true, 
-      isVerified: profile.verify === true,
+      isVerified: true,
     });
+  } else {
+    return res.json({success:false, isVerified:false})
+  }
     
   } catch (error) {
     return res.json({ 
