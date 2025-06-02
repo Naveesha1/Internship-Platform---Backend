@@ -33,7 +33,7 @@ const companyProfileController = async (req, res) => {
     if (company) {
       return res.json({
         success: false,
-        message: "Details under your email is exsist",
+        message: "Details under your email is exist",
       });
     } else {
       //split the positions into an array
@@ -61,7 +61,7 @@ const companyProfileController = async (req, res) => {
       return res.json({ success: true, message: "Details saved successfully" });
     }
   } catch (error) {
-    console.error("An error occured while saving", error);
+    console.error("An error occurred while saving", error);
     return res.json({ success: false, message: "Details saving failed" });
   }
 };
