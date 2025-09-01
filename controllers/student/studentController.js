@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import internshipModel from "../../models/company/internshipModel.js";
 import notificationModel from "../../models/notificationModel.js";
 import mentorProfileModel from "../../models/mentor/mentorProfileModel.js";
+import applyInternshipModel from "../../models/student/applyInternshipModel.js";
 
 const studentProfileController = async (req, res) => {
   const {
@@ -229,6 +230,28 @@ const getSuggestInternships = async (req, res) => {
   }
 };
 
+const getHiredStudentsRegisteredId = async (req, res) => {
+  const { companyEmail } = req.params;
+  try {
+    
+    const uniqueEmails = await applyInternshipModel.distinct("userEmail", {
+      companyRegisteredEmail: companyEmail,
+      isHired: true
+    });
+
+    const studentIds = await studentProfileModel.find(
+      { registeredEmail: { $in: uniqueEmails } },
+      { registrationNumber: 1, _id: 0 }
+    );
+
+    const registeredIds = studentIds.map((id) => id.registrationNumber);
+
+    return res.json({ success: true, data: registeredIds });
+  } catch (error) {
+    return res.json({ success: false, message: "An error occurred" });
+  }
+};
+
 const getStudentRegisteredId = async (req, res) => {
   try {
     const studentIds = await studentProfileModel.find(
@@ -238,7 +261,7 @@ const getStudentRegisteredId = async (req, res) => {
     const registeredIds = studentIds.map((id) => id.registrationNumber);
     return res.json({ success: true, data: registeredIds });
   } catch (error) {
-    return res.json({ success: false, message: "An error occured" });
+    return res.json({ success: false, message: "An error occurred" });
   }
 };
 
@@ -669,4 +692,5 @@ export {
   deleteMonthlyReport,
   updateWeeklyReport,
   checkProfileVerification,
+  getHiredStudentsRegisteredId,
 };

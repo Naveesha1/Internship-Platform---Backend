@@ -9,6 +9,7 @@ import {
   deleteExistingCvDetails,
   getSuggestInternships,
   getStudentRegisteredId,
+  getHiredStudentsRegisteredId,
   getStudentData,
   getGpaDistribution,
   getRegistrationId,
@@ -49,6 +50,7 @@ studentRouter.post("/getSubmitted", getSubmittedApplicationsController);
 studentRouter.post("/newChances", remainInternshipController);
 
 studentRouter.get("/getStudentRegisteredId", getStudentRegisteredId);
+studentRouter.get("/getHiredStudentsRegisteredId/:companyEmail", getHiredStudentsRegisteredId);
 studentRouter.post("/getStudentName", getStudentData);
 studentRouter.get("/gpa-distribution", getGpaDistribution);
 studentRouter.post("/getRegistrationId", getRegistrationId);
